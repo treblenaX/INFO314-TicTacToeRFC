@@ -2,14 +2,12 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
-public class UDPTestClient {
+public class UDPTestClient2 {
   public static void main(String[] args) {
     try {
       // Create a UDP socket
       DatagramSocket socket = new DatagramSocket();
-      sendMessage(socket, "HELO 1 elbert");
-      sendMessage(socket, "CREA elbert");
-      sendMessage(socket, "LIST");
+      sendMessage(socket, "HELO 1 treble");
       socket.close();
     } catch (Exception e) {
       e.printStackTrace();

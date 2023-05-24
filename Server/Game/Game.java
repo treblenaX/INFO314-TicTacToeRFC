@@ -1,13 +1,10 @@
+package Game;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Game {
-  enum GameState {
-    OPEN, 
-    IN_PLAY,
-    FINISHED
-  }
   private List<String> players;
   private boolean isPlayerOneTurn;
   private char[][] gameBoard;
@@ -38,5 +35,9 @@ public class Game {
       case FINISHED:  // game is over
         break;
     }
+  }
+
+  public GameState getGameState() {
+    return this.gameState;
   }
 }

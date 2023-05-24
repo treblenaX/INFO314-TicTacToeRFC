@@ -1,3 +1,6 @@
+import Game.Game;
+import Game.GameState;
+
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.nio.charset.StandardCharsets;
@@ -85,12 +88,30 @@ public class UDPTTTServer {
         // if game is full - send YRMV
         return "";
       case "LIST":  // list all games
+        String filter = (tokens.length > 1) ? tokens[1] : "";
+        List<String> list = new ArrayList<>();
+
         // if no body - respond with GAMS (open)
         // if has CURR - respond with GAMS (open | in-play)
         // if has ALL - respond with GAMS (open | in-play | finished)
+        switch (filter) {
+          case "CURR":
+            list = gameMaster.getGames(GameState.OPEN, GameState.IN_PLAY);
+            break; 
+          case "ALL":
+            list = gameMaster.getGames();
+            break;
+          default:
+            list = gameMaster.getGames(GameState.OPEN);
+            break;
+        }
 
+        String response = "GAMS";
+        for (String gameId : list) {
+          response += " " + gameId;
+        }
         // respond with GAMS <gid_1> <gid_2> ... <gid_n>
-        return "";
+        return response;
       case "MOVE":  // make a move
         // must accept linear value (0-8)
         // must accept "X,Y" value (1-3,1-3)
