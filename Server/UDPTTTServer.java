@@ -1,18 +1,24 @@
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class UDPTTTServer {
   private final Logger LOGGER = Logger.getLogger(UDPTTTServer.class.getName());
-
+  // private final Set<String> SUPPORTED_PROTOCOLS = new HashSet<String>(Arrays.asList("1"));
+  private final byte[] BUFFER = new byte[1024];
   private Integer port;
-  private UDPTTTServer instance;
-  private byte[] BUFFER = new byte[1024];
+  private Map<String, String> sessions;
+  private GameMaster gameMaster;
+
 
   public UDPTTTServer(int port) throws Exception {
     this.port = port;
+    this.sessions = new HashMap<>();
+    this.gameMaster = new GameMaster();
   }
 
   public void init() throws Exception {
@@ -28,12 +34,11 @@ public class UDPTTTServer {
       LOGGER.info("RECEIVED - TTTServer");
       executor.execute(() -> {
         try {
-          String inData = new String(inPacket.getData());
-
-          // process the data
-          handleClientRequest(inData);
-          // return the response
-          DatagramPacket outPacket = new DatagramPacket(inData.getBytes(), inData.getBytes().length, inPacket.getAddress(), inPacket.getPort());
+          String inData = new String(inPacket.getData(), 0, inPacket.getLength(), StandardCharsets.UTF_8);
+          String response = handleClientRequest(inData);
+          LOGGER.info("RESPONSE - " + response);
+          DatagramPacket outPacket = new DatagramPacket(response.getBytes(), response.getBytes().length, inPacket.getAddress(), inPacket.getPort());
+          socket.send(outPacket);
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -42,36 +47,50 @@ public class UDPTTTServer {
 
   }
 
-  private void handleClientRequest(String data) {
+  private String handleClientRequest(String data) {
     String[] tokens = data.split(" ");
-    String command = tokens[0];
+    String command = tokens[0].toUpperCase(); // commands are case-insensitive
 
     switch (command) {
       case "CREA":  // create a new game
+        String playerName = tokens[1];
 
-        // respond with JOIN <gid>
-        break;
+        String gameCode = gameMaster.addGame(playerName);
+        LOGGER.info("CREA - game created - " + gameCode);
+
+        // respond with JOND <cid> <gid>
+        return "JOND " + playerName + " " + gameCode;
       case "GDBY":  // goodbye - finished with session
         // client wants to quit
-        break;
+        return "";
       case "HELO":  // initiate a session
         String protocol = tokens[1];
-        String cid_1 = tokens[2];
+        String cid = tokens[2];
+
+        UUID uuid;
+
+        do {
+          uuid = UUID.randomUUID();
+        } while (sessions.containsKey(uuid.toString()));
+
+        sessions.put(uuid.toString(), cid);
+
+        System.out.println(sessions);
 
         // respond with SESS <protocol> <sessionID>
-        break;
+        return "SESS " + protocol + " " + uuid.toString();
       case "JOIN":  // join an existing game
 
         // respond with JOND <cid> <gid>
         // if game is full - send YRMV
-        break;
+        return "";
       case "LIST":  // list all games
         // if no body - respond with GAMS (open)
         // if has CURR - respond with GAMS (open | in-play)
         // if has ALL - respond with GAMS (open | in-play | finished)
 
         // respond with GAMS <gid_1> <gid_2> ... <gid_n>
-        break;
+        return "";
       case "MOVE":  // make a move
         // must accept linear value (0-8)
         // must accept "X,Y" value (1-3,1-3)
@@ -79,15 +98,15 @@ public class UDPTTTServer {
         // must evaluate legality
 
         // respond with BORD <gid> <cid_1>(X - first) <cid_2>(O - second) <cid_m>(who moves next) <board>
-        break;
+        return "";
       case "QUIT":  // quit a game
         // abandon game without terminating session
         // player opposite of quitter is WINNER
-        break;
+        return "";
       case "STAT":  // get game status
         // needs <gid> body
         // respond with status
-        break;
+        return "";
       default:  // undefined command
         throw new Error("Unable to understand command.");
     }
