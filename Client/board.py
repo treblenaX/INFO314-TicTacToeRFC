@@ -8,9 +8,7 @@
 import pygame, sys
 import numpy as np
 
-pygame.init()
 WIDTH, HEIGHT = 600, 600
-RED = (255, 0, 0)
 BG_COLOR = (28, 170, 156)
 LINE_COLOR = (23, 145, 135)
 LINE_WIDTH = 15
@@ -23,6 +21,8 @@ CIRCLE_COLOR = (239, 231, 200)
 CROSS_COLOR = (66, 66, 66)
 CROSS_WIDTH = 25
 SHIFT = 55
+
+pygame.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT)) # set the window
 pygame.display.set_caption("Tic Tac Toe Game")    # set title
