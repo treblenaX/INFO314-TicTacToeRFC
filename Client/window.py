@@ -1,5 +1,9 @@
 """
   $ pip install pygame
+  $ python window.py
+  Player 1: circle, Player 2: fork
+  click some space on the board, and close it
+  the terminal would print the board
 """
 import pygame, sys
 import numpy as np
