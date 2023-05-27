@@ -20,7 +20,7 @@ There is no copyright associated with this document, and anyone is free to use i
 3. [Rules of Tic-Tac-Toe](#rules-of-tic-tac-toe)
     1. [Determination of which player begins](#determination-of-which-player-begins)
     2. [Restrictions around token placement](#restrictions-around-token-placement)
-    3. [Game termination](#game-termination)
+    3. [Game.Game termination](#game-termination)
 4. [Detailed Description](#detailed-description)
     1. [Description of terms](#description-of-terms)
     2. [TCP Based Service](#tcp-based-tic-tac-toe-service)
@@ -63,7 +63,7 @@ Various means are used to determine which player plays first: a coin flip is com
 ### Restrictions around token placement
 Players may place their token in any unoccupied square; that is, they may not place a token in a square occupied by an opponent.
 
-### Game termination
+### Game.Game termination
 The game is over as soon as one player has achieved three-in-a-row; not of the grid need be filled.
 
 If all nine squares are filled and no player has three-in-a-row, the game is a stalemate (also sometimes called a "cats" game, for reasons lost to history), and no winner is declared.

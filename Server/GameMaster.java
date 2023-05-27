@@ -7,67 +7,91 @@ import Game.Game;
 import Game.GameState;
 
 public class GameMaster {
-	private final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	private final int CODE_LENGTH = 4;
-	private Map<String, Game> gameMap;
+  private final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private final int CODE_LENGTH = 4;
+  private Map<String, Game> gameMap;
 
-	public GameMaster() {
-		gameMap = new HashMap<>();
+  public GameMaster() {
+    gameMap = new HashMap<>();
+  }
+
+  public String createGame() {
+    String code;
+    do {
+      code = generateCode();
+    } while (this.gameMap.containsKey(code));
+
+    Game game = new Game(code);
+    // @TODO add player One
+
+    this.gameMap.put(code, game);
+
+    return code;
+  }
+
+  public void joinGame(String code, String player) {
+    Game game = this.gameMap.get(code);
+    game.addPlayer(player);
+  }
+
+  public String getGameStatus(String code) {
+    return this.gameMap.get(code).getGameStatus();
+  }
+
+  public List<String> getGames() {
+    List<String> gameIds = new ArrayList<>();
+
+    for (String key : this.gameMap.keySet()) {
+      gameIds.add(key);
+    }
+
+    return gameIds;
+  }
+
+  public List<String> getGames(GameState... state) {
+    List<String> gameIds = new ArrayList<>();
+
+    for (Map.Entry<String, Game> entry : this.gameMap.entrySet()) {
+      GameState gameState = entry.getValue().getGameState();
+      for (GameState s : state) {
+        if (gameState == s) {
+          gameIds.add(entry.getKey());
+          break;
+        }
+      }
+    }
+
+    return gameIds;
+  }
+
+  public String moveInGame(String code, int linearPoint) {
+    return this.gameMap.get(code).move(linearPoint);
+  }
+  public String moveInGame(String code, int x, int y) {
+    return this.gameMap.get(code).move(x, y);
+  }
+
+  public boolean isGamePlayersFull(String code) {
+    return this.gameMap.get(code).isPlayersFull();
+  }
+
+  public List<String> getGamePlayers(String code) {
+    return this.gameMap.get(code).getPlayers();
+  }
+
+	public String whoseTurnInGame(String code) {
+		return this.gameMap.get(code).whoseTurn();
 	}
+//
+//  public String playerQuitGame(String code, String playerName) {
+//    return this.gameMap.get(code).quitGame(playerName);
+//  }
 
-	public String addGame(String playerOne) {
-		// generate the game code
-		String code;
-		do {
-			code = generateCode();
-		} while (this.gameMap.containsKey(code));
-
-		Game game = new Game(playerOne);
-
-		this.gameMap.put(code, game);
-
-		// TODO: take out
-		System.out.println(gameMap);
-
-		return code;
-	}
-
-	public void addPlayer(String code, String playerTwo) {
-		Game game = this.gameMap.get(code);
-		game.addPlayer(playerTwo);
-	}
-
-	public List<String> getGames() {
-		List<String> gameIds = new ArrayList<>();
-
-		for (String key : this.gameMap.keySet()) {
-			gameIds.add(key);
-		}
-
-		return gameIds;
-	}
-
-	public List<String> getGames(GameState... state) {
-		List<String> gameIds = new ArrayList<>();
-
-		for (Map.Entry<String, Game> entry : this.gameMap.entrySet()) {
-			GameState gameState = entry.getValue().getGameState();
-			for (GameState s : state) {
-				if (gameState == s) {
-					gameIds.add(entry.getKey());
-					break;
-				}
-			}
-		}
-
-		return gameIds;
-	}
-
-	private String generateCode() {
-		StringBuilder code = new StringBuilder();
-		for (int i = 0; i < CODE_LENGTH; i++) {
-			code.append(ALPHABET.charAt((int) (Math.random() * ALPHABET.length())));
-		}
-		return code.toString();
-	}
+  private String generateCode() {
+    StringBuilder code = new StringBuilder();
+    for (int i = 0; i < CODE_LENGTH; i++) {
+      code.append(ALPHABET.charAt((int) (Math.random() * ALPHABET.length())));
+    }
+    return code.toString();
+  }
 }
