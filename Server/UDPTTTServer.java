@@ -43,7 +43,7 @@ public class UDPTTTServer {
 
   public void init() throws Exception {
     LOGGER.info("INIT - TTTServer");
-    
+
     ExecutorService executor = Executors.newFixedThreadPool(10);
     DatagramSocket socket = new DatagramSocket(this.port);
     LOGGER.info("LISTENING - TTTServer - " + this.port);
