@@ -78,7 +78,14 @@ public class UDPTTTServer {
         respond(socket, "JOND " + playerName + " " + gameCode, senderLocation);
         break;
       case "GDBY":  // goodbye - finished with session
-        // client wants to quit
+        playerName = findPlayerNameFromIP(senderLocation);
+
+        if ((gameCode = gameMaster.isPlayerInGame(playerName)) != null) {
+          gameMaster.playerQuitGame(gameCode, playerName);
+        }
+        this.sessions.remove(playerName);
+
+        respond(socket, "GDBY", senderLocation);
         break;
       case "HELO":  // initiate a session
         String protocol = tokens[1];
@@ -99,13 +106,7 @@ public class UDPTTTServer {
 
         // if game is full - start game - send YRMV
         if (gameMaster.isGamePlayersFull(gameCode)) {
-          List<String> locations = new ArrayList<>();
-          for (String s : gameMaster.getGamePlayers(gameCode)) {
-            User u = this.sessions.get(s);
-            locations.add(u.address + ":" + u.port);
-          }
-
-          respond(socket, "YRMV " + gameCode + " " + gameMaster.whoseTurnInGame(gameCode), locations.toArray(new String[0]));
+          respond(socket, "YRMV " + gameCode + " " + gameMaster.whoseTurnInGame(gameCode), getLocationsOfPlayers(gameCode));
         }
         break;
       case "LIST":  // list all games
@@ -145,46 +146,27 @@ public class UDPTTTServer {
           boardResponse = gameMaster.moveInGame(gameCode, x, y);
         }
 
-        List<String> locations = new ArrayList<>();
-        for (String s : gameMaster.getGamePlayers(gameCode)) {
-          User u = this.sessions.get(s);
-          locations.add(u.address + ":" + u.port);
-        }
-
         // Send board response
-        respond(socket, "BORD " + boardResponse, locations.toArray(new String[0]));
+        respond(socket, "BORD " + boardResponse, getLocationsOfPlayers(gameCode));
 
         // Say whose turn it is next
-        respond(socket, "YRMV " + gameCode + " " + gameMaster.whoseTurnInGame(gameCode), locations.toArray(new String[0]));
+        respond(socket, "YRMV " + gameCode + " " + gameMaster.whoseTurnInGame(gameCode), getLocationsOfPlayers(gameCode));
         break;
       case "QUIT":  // quit a game
         // abandon game without terminating session
-//        gameCode = tokens[1];
-//        playerName = "";
-//
-//        for (Map.Entry<String, User> entry: this.sessions.entrySet()) {
-//          if (Objects.equals(ipAddress + ":" + port, entry.getValue().address + ":" + entry.getValue().port)) {
-//            playerName = entry.getKey();
-//          }
-//        }
-//
-//        String winner = gameMaster.playerQuitGame(gameCode, playerName);
-//        return "BORD " + gameCode
-//                + " " + players.get(0) + " " + players.get(1)
-//                + " " + playerTurn + " " + gameMaster.getGameBoard(gameCode);
+        gameCode = tokens[1];
+        playerName = findPlayerNameFromIP(senderLocation);
+        gameMaster.playerQuitGame(gameCode, playerName);
+
+        respond(socket, "BORD " + gameMaster.getGameStatus(gameCode), getLocationsOfPlayers(gameCode));
         break;
       case "STAT":  // get game status
         gameCode = tokens[1];
-        System.out.println(this.gameMaster.getGameStatus(gameCode));
         respond(socket, "BORD " + this.gameMaster.getGameStatus(gameCode), senderLocation);
         break;
       default:  // undefined command
         throw new Error("Unable to understand command.");
     }
-  }
-
-  private void sendPackets(String payload, String... destinations) {
-
   }
 
   private void respond(DatagramSocket socket, String payload, String... destinations) throws Exception {
@@ -207,5 +189,15 @@ public class UDPTTTServer {
     }
 
     return playerName;
+  }
+
+  private String[] getLocationsOfPlayers(String gameCode) {
+    List<String> locations = new ArrayList<>();
+    for (String s : gameMaster.getGamePlayers(gameCode)) {
+      User u = this.sessions.get(s);
+      locations.add(u.address + ":" + u.port);
+    }
+
+    return locations.toArray(new String[0]);
   }
 }

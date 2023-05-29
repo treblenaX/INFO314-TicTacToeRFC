@@ -22,7 +22,6 @@ public class GameMaster {
     } while (this.gameMap.containsKey(code));
 
     Game game = new Game(code);
-    // @TODO add player One
 
     this.gameMap.put(code, game);
 
@@ -82,10 +81,21 @@ public class GameMaster {
 	public String whoseTurnInGame(String code) {
 		return this.gameMap.get(code).whoseTurn();
 	}
-//
-//  public String playerQuitGame(String code, String playerName) {
-//    return this.gameMap.get(code).quitGame(playerName);
-//  }
+
+  public void playerQuitGame(String code, String playerName) {
+    Game game = this.gameMap.get(code);
+    game.quitGame(playerName);
+    if (game.getPlayers().size() == 0) {  // end the game since no players
+      this.gameMap.remove(code);
+    }
+  }
+
+  public String isPlayerInGame(String playerName) {
+    for (Map.Entry<String, Game> gameEntry : this.gameMap.entrySet()) {
+      if (gameEntry.getValue().isPlayerInGame(playerName)) return gameEntry.getKey();
+    }
+    return null;
+  }
 
   private String generateCode() {
     StringBuilder code = new StringBuilder();

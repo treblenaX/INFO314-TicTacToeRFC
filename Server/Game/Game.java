@@ -51,7 +51,7 @@ public class Game {
     // not started yet
     if (this.gameState == GameState.OPEN) {
       String p = "";
-      for (String s : players) p += s + " ";
+      for (String s : getPlayers()) p += s + " ";
 
       System.out.println(this.gameCode + " " + p.trim());
       return this.gameCode + " " + p.trim();
@@ -148,12 +148,16 @@ public class Game {
   public String whoseTurn() {
     return (isPlayerOneTurn) ? playerOne[0] : playerTwo[0];
   }
-//
-//  public String quitGame(String playerName) {
-//    this.gameState = GameState.FINISHED;
-//    return (playerName.equals(playerOne[0])) ? playerTwo[0] : playerOne[0];
-//  }
-//
+
+  public void quitGame(String playerName) {
+    this.gameState = GameState.FINISHED;
+    this.winner = (playerName.equals(playerOne[0])) ? playerTwo[0] : playerOne[0];
+  }
+
+  public boolean isPlayerInGame(String playerName) {
+    return (playerOne[0].equals(playerName) || playerTwo[0].equals(playerName));
+  }
+
   private boolean checkWin(char mark) {
     // rows
     for (int i = 0; i < numRows; i++) {
