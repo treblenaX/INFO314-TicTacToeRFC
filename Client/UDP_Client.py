@@ -26,7 +26,7 @@ def joinGame(gameID):
     return "JOIN "+gameID
 
 # To make a move
-def move(name, location)
+def move(name, location):
     return "MOVE "+name+" "+location
 
 # To abandon the game without terminating the session

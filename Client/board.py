@@ -1,115 +1,176 @@
+import tkinter as tk
+from tkinter import *
+from tkmacosx import Button
+from tkinter import messagebox
+
+LARGEFONT =("Arial", 30)
+
 """
-  $ pip install pygame
-  $ python window.py
-  Player 1: circle, Player 2: fork
-  click some space on the board, and close it
-  the terminal would print the board
+Game Page
+1. Restart the game
+2. Close the game
 """
-import pygame, sys
-import numpy as np
 
-WIDTH, HEIGHT = 600, 600
-BG_COLOR = (28, 170, 156)
-LINE_COLOR = (23, 145, 135)
-LINE_WIDTH = 15
-BOARD_ROWS, BOARD_COLS = 3, 3
+# global variables
+CLICKED = True
+COUNT = 0
 
-CIRCLE_RADIUS = 60
-CIRCLE_WIDTH = 15
-CIRCLE_COLOR = (239, 231, 200)
+class Finish(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = tk.Label(self, text ="Finish!!!", font = LARGEFONT)
+        label.grid(row = 1, column = 4, padx = 10, pady = 10)
 
-CROSS_COLOR = (66, 66, 66)
-CROSS_WIDTH = 25
-SHIFT = 55
+class Board(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.configure(bg='#333333')
 
-class Board():
-    def __init__(self):
-        pygame.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT)) # set the window
-        pygame.display.set_caption("Tic Tac Toe Game")    # set title
-        self.screen.fill(BG_COLOR)                             # set color
-        self.draw_lines()
+        self.b1 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b1))
+        self.b2 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b2))
+        self.b3 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b3))
 
-        # build board
-        self.board = np.zeros((BOARD_ROWS, BOARD_COLS))
+        self.b4 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b4))
+        self.b5 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b5))
+        self.b6 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b6))
 
-        player = 1
+        self.b7 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b7))
+        self.b8 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b8))
+        self.b9 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b9))
 
-        # start the window of game
-        while True:
-            for event in pygame.event.get():
-                # check if the user close the window
-                if event.type == pygame.QUIT:
-                    sys.exit()
+        self.b1.grid(row=0, column=0)
+        self.b2.grid(row=0, column=1)
+        self.b3.grid(row=0, column=2)
 
-                # check if the user clicks the screen
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    mouseX = event.pos[0] # x
-                    mouseY = event.pos[1] # y
+        self.b4.grid(row=1, column=0)
+        self.b5.grid(row=1, column=1)
+        self.b6.grid(row=1, column=2)
 
-                    # match board to screen
-                    clicked_row = int(mouseY // 200)
-                    clicked_col = int(mouseX // 200)
-                    # print(clicked_row, clicked_col)
+        self.b7.grid(row=2, column=0)
+        self.b8.grid(row=2, column=1)
+        self.b9.grid(row=2, column=2)
+        # self.buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9]
 
-                    if self.checkBoardEmpty(clicked_row, clicked_col):
-                        if player == 1:
-                            self.mark_square(clicked_row, clicked_col, 1)
-                            player = 2
-                        elif player == 2:
-                            self.mark_square(clicked_row, clicked_col, 2)
-                            player = 1
+        # TODO: restart game not work!
+        button1 = Button(self, text ="Restart a Game", bg='#AACE8F',
+                            command = lambda : controller.show_frame(Board))
 
-                        self.draw_player()
+        button1.grid(row=3, column=0, columnspan=2, pady=5)
+        # close the game
+        button2 = Button(self, text ="Close a Game", bg='#AACE8F',
+                            command = lambda : controller.show_frame(Finish))
 
-                        print(self.board)
+        button2.grid(row=3, column=1, columnspan=2, pady=5)
 
-            # update the screen
-            pygame.display.update()
-
-
-    # build grid
-    def draw_lines(self):
-        # draw two horizontal lines
-        # (screen, color, start, end, width)
-        pygame.draw.line(self.screen, LINE_COLOR, (0, 200), (600, 200), LINE_WIDTH)
-        pygame.draw.line(self.screen, LINE_COLOR, (0, 400), (600, 400), LINE_WIDTH)
-        # draw two vertical lines
-        pygame.draw.line(self.screen, LINE_COLOR, (200, 0), (200, 600), LINE_WIDTH)
-        pygame.draw.line(self.screen, LINE_COLOR, (400, 0), (400, 600), LINE_WIDTH)
+    def b_click(self, b):
+        global CLICKED, COUNT
+        if b['text'] == " " and CLICKED == True:
+            b['text'] = "X"
+            CLICKED = False
+            COUNT += 1
+            self.checkWin()
+        elif b['text'] == " " and CLICKED == False:
+            b['text'] = "O"
+            CLICKED = True
+            COUNT += 1
+            self.checkWin()
+        else:
+            messagebox.showerror("Tic Tac Toe", "Hey! That box has already been selected\nPick Another Box...")
 
 
-    def mark_square(self, row, col, player):
-        self.board[row][col] = player
+    # disable button
+    def disableButtons(self):
+        self.b1.config(state=DISABLED)
+        self.b2.config(state=DISABLED)
+        self.b3.config(state=DISABLED)
+        self.b4.config(state=DISABLED)
+        self.b5.config(state=DISABLED)
+        self.b6.config(state=DISABLED)
+        self.b7.config(state=DISABLED)
+        self.b8.config(state=DISABLED)
+        self.b9.config(state=DISABLED)
 
-# test
-# mark_square(0, 0, 1)
-# mark_square(1, 1, 2)
+    # Check to see if someone win
+    def checkWin(self):
+        global winner
+        winner = False
 
-    # check if the board[r][c] is empty
-    def checkBoardEmpty(self, r, c):
-        return self.board[r][c] == 0
+        # check X win
+        if (self.b1["text"] == "X" and self.b2["text"] == "X" and self.b3["text"] == "X") or (
+            self.b1["text"] == "O" and self.b2["text"] == "O" and self.b3["text"] == "O"
+        ):
+            self.b1.config(bg='red')
+            self.b2.config(bg='red')
+            self.b3.config(bg='red')
+            print(self.b1['text']) # test
+            winner = True
+            messagebox.showinfo("Tic Tac Toe", "Congratulations! You Win!")
+            self.disableButtons()
+        elif (self.b4["text"] == "X" and self.b5["text"] == "X" and self.b6["text"] == "X") or (
+            self.b4["text"] == "O" and self.b5["text"] == "O" and self.b6["text"] == "O"
+        ):
+            self.b4.config(bg='red')
+            self.b5.config(bg='red')
+            self.b6.config(bg='red')
+            winner = True
+            messagebox.showinfo("Tic Tac Toe", "Congratulations! You Win!")
+            self.disableButtons()
+        elif (self.b7["text"] == "X" and self.b8["text"] == "X" and self.b9["text"] == "X") or (
+            self.b7["text"] == "O" and self.b8["text"] == "O" and self.b9["text"] == "O"
+        ):
+            self.b7.config(bg='red')
+            self.b8.config(bg='red')
+            self.b9.config(bg='red')
+            winner = True
+            messagebox.showinfo("Tic Tac Toe", "Congratulations! You Win!")
+            self.disableButtons()
+        elif (self.b1["text"] == "X" and self.b4["text"] == "X" and self.b7["text"] == "X") or (
+            self.b1["text"] == "O" and self.b4["text"] == "O" and self.b7["text"] == "O"
+        ):
+            self.b1.config(bg='red')
+            self.b4.config(bg='red')
+            self.b7.config(bg='red')
+            winner = True
+            messagebox.showinfo("Tic Tac Toe", "Congratulations! You Win!")
+            self.disableButtons()
+        elif (self.b2["text"] == "X" and self.b5["text"] == "X" and self.b8["text"] == "X") or (
+            self.b2["text"] == "O" and self.b5["text"] == "O" and self.b8["text"] == "O"
+        ):
+            self.b2.config(bg='red')
+            self.b5.config(bg='red')
+            self.b8.config(bg='red')
+            winner = True
+            messagebox.showinfo("Tic Tac Toe", "Congratulations! You Win!")
+            self.disableButtons()
+        elif (self.b3["text"] == "X" and self.b6["text"] == "X" and self.b9["text"] == "X") or (
+            self.b3["text"] == "O" and self.b6["text"] == "O" and self.b9["text"] == "O"
+        ):
+            self.b3.config(bg='red')
+            self.b6.config(bg='red')
+            self.b9.config(bg='red')
+            winner = True
+            messagebox.showinfo("Tic Tac Toe", "Congratulations! You Win!")
+            self.disableButtons()
+        elif (self.b1["text"] == "X" and self.b5["text"] == "X" and self.b9["text"] == "X") or (
+            self.b1["text"] == "O" and self.b5["text"] == "O" and self.b9["text"] == "O"
+        ):
+            self.b1.config(bg='red')
+            self.b5.config(bg='red')
+            self.b9.config(bg='red')
+            winner = True
+            messagebox.showinfo("Tic Tac Toe", "Congratulations! You Win!")
+            self.disableButtons()
+        elif (self.b3["text"] == "X" and self.b5["text"] == "X" and self.b7["text"] == "X") or (
+            self.b3["text"] == "O" and self.b5["text"] == "O" and self.b7["text"] == "O"
+        ):
+            self.b3.config(bg='red')
+            self.b5.config(bg='red')
+            self.b7.config(bg='red')
+            winner = True
+            messagebox.showinfo("Tic Tac Toe", "Congratulations! You Win!")
+            self.disableButtons()
 
-    # check if the board is full
-    def checkBoardFull(self):
-        for r in range(BOARD_ROWS):
-            for c in range(BOARD_COLS):
-                if self.board[r][c] == 0:
-                    return False
-        return True
-
-    # draw player on screen
-    def draw_player(self):
-        for r in range(BOARD_COLS):
-            for c in range(BOARD_COLS):
-                if self.board[r][c] == 1:
-                    pygame.draw.circle(self.screen, CIRCLE_COLOR, (int(c * 200 + 100), int(r * 200 + 100)), CIRCLE_RADIUS, CIRCLE_WIDTH)
-                elif self.board[r][c] == 2:
-                    # draw line from (0, 200) -> (200, 0)
-                    pygame.draw.line(self.screen, CROSS_COLOR, (c * 200 + SHIFT, r * 200 + 200 - SHIFT), (c * 200 + 200 - SHIFT, r * 200 + SHIFT), CROSS_WIDTH)
-                    # draw line from (0, 0) -> (200, 200)
-                    pygame.draw.line(self.screen, CROSS_COLOR, (c * 200 + SHIFT, r * 200 +SHIFT), (c * 200 + 200 - SHIFT, r * 200 + 200 - SHIFT), CROSS_WIDTH)
-
-
-if __name__ == "__main__":
-    Board()
+        # check if tie
+        if COUNT == 9 and winner == False:
+            messagebox.showinfo("Tic Tac Toe", "It's a Tie!\n Nobody Wins!")
+            self.disableButtons()
