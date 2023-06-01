@@ -42,7 +42,7 @@ public class UDPTTTServer {
   }
 
   public void init() throws Exception {
-    LOGGER.info("INIT - TTTServer");
+    LOGGER.info("[UDP] - INIT - TTTServer");
 
     ExecutorService executor = Executors.newFixedThreadPool(10);
     DatagramSocket socket = new DatagramSocket(this.port);
@@ -61,7 +61,6 @@ public class UDPTTTServer {
         }
       });
     } while (true);
-
   }
 
   private void handleClientRequest(DatagramSocket socket, String input, String senderLocation) throws Exception {
@@ -131,7 +130,6 @@ public class UDPTTTServer {
         String response = "";
         for (String gameId : list) response += " " + gameId;
         respond(socket, "GAMS" + response, senderLocation);
-
         break;
       case "MOVE":  // make a move
         gameCode = tokens[1];
@@ -146,9 +144,17 @@ public class UDPTTTServer {
           boardResponse = gameMaster.moveInGame(gameCode, x, y);
         }
 
+        if (gameMaster.isGameEnded(gameCode)) { // win/tie condition
+          String termResponse = (gameMaster.getGameWinner(gameCode) != null)
+            ? gameCode + " " + gameMaster.getGameWinner(gameCode) + " KTHXBYE"
+            : gameCode + " KTHXBYE";
+
+          respond(socket, "TERM " + termResponse, getLocationsOfPlayers(gameCode));
+          break;
+        }
+
         // Send board response
         respond(socket, "BORD " + boardResponse, getLocationsOfPlayers(gameCode));
-
         // Say whose turn it is next
         respond(socket, "YRMV " + gameCode + " " + gameMaster.whoseTurnInGame(gameCode), getLocationsOfPlayers(gameCode));
         break;
@@ -157,8 +163,7 @@ public class UDPTTTServer {
         gameCode = tokens[1];
         playerName = findPlayerNameFromIP(senderLocation);
         gameMaster.playerQuitGame(gameCode, playerName);
-
-        respond(socket, "BORD " + gameMaster.getGameStatus(gameCode), getLocationsOfPlayers(gameCode));
+        respond(socket, "TERM " + gameCode + " " + gameMaster.getGameWinner(gameCode) + " KTHXBYE", getLocationsOfPlayers(gameCode));
         break;
       case "STAT":  // get game status
         gameCode = tokens[1];

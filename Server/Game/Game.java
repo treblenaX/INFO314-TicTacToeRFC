@@ -25,7 +25,7 @@ public class Game {
     this.players = new ArrayList<>();
     this.playerOne = new String[]{"", "X"};
     this.playerTwo = new String[]{"", "O"};
-    this.winner = "";
+    this.winner = null;
     this.gameCode = code;
 
     this.gameBoard = new char[numRows][numCols];
@@ -88,6 +88,8 @@ public class Game {
 
     connectedUsers++;
 
+    this.players.add(playerName);
+
     if (connectedUsers == 2) {  // everyone is in - start the game
       this.gameState = GameState.IN_PLAY;
       this.isPlayerOneTurn = true;
@@ -138,12 +140,7 @@ public class Game {
   }
 
   public List<String> getPlayers() {
-    List<String> players = new ArrayList<String>();
-
-    if (this.playerOne != null) players.add(this.playerOne[0]);
-    if (this.playerTwo != null) players.add(this.playerTwo[0]);
-
-    return players;
+    return this.players;
   }
   public String whoseTurn() {
     return (isPlayerOneTurn) ? playerOne[0] : playerTwo[0];
@@ -151,11 +148,16 @@ public class Game {
 
   public void quitGame(String playerName) {
     this.gameState = GameState.FINISHED;
+    this.players.remove(playerName);
     this.winner = (playerName.equals(playerOne[0])) ? playerTwo[0] : playerOne[0];
   }
 
   public boolean isPlayerInGame(String playerName) {
     return (playerOne[0].equals(playerName) || playerTwo[0].equals(playerName));
+  }
+
+  public String getWinner() {
+    return this.winner;
   }
 
   private boolean checkWin(char mark) {

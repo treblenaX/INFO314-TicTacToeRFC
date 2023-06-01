@@ -6,13 +6,45 @@ public class UDPTestClient2 {
   private static final int SERVER_PORT = 3116;
   private static final int BUFFER_SIZE = 1024;
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     try {
       DatagramSocket socket = new DatagramSocket();
       System.out.println("Client started.");
+      // Messages to send
+      String[] messages = {
+              "HELO 1 jul"
+      };
+
+      // Send messages sequentially
+      for (String message : messages) {
+        byte[] sendData = message.getBytes();
+
+        // Create a DatagramPacket for sending
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getLocalHost(), SERVER_PORT);
+
+        // Send the packet
+        socket.send(sendPacket);
+
+        System.out.println(message);
+
+        // Create a buffer for receiving the server's response
+        byte[] receiveData = new byte[1024];
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+        // Receive the response from the server
+        socket.receive(receivePacket);
+
+        // Process the response
+        String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+        System.out.println("Received: " + response);
+
+        // Wait for a short duration before sending the next message
+        Thread.sleep(1000); // 1 second
+      }
 
       // Create a separate thread for receiving packets
       Thread receiverThread = new Thread(() -> {
+        System.out.println("Thread started.");
         try {
           byte[] buffer = new byte[BUFFER_SIZE];
           DatagramPacket receivePacket = new DatagramPacket(buffer, BUFFER_SIZE);
@@ -49,16 +81,21 @@ public class UDPTestClient2 {
       }
 
       // Close the socket and join the receiver thread
-      socket.close();
+//      socket.close();
       receiverThread.join();
-      scanner.close();
       System.out.println("Client terminated.");
-    } catch (SocketException e) {
+    } catch(SocketException e){
       System.out.println("SocketException: " + e.getMessage());
-    } catch (IOException e) {
+    } catch(IOException e){
       System.out.println("IOException: " + e.getMessage());
-    } catch (InterruptedException e) {
+    } catch(InterruptedException e){
       System.out.println("InterruptedException: " + e.getMessage());
     }
+  }
+
+  private static void send(DatagramSocket socket, String str) throws Exception {
+    byte[] sendData = str.getBytes();
+    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getLocalHost(), SERVER_PORT);
+    socket.send(sendPacket);
   }
 }

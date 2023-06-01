@@ -97,6 +97,14 @@ public class GameMaster {
     return null;
   }
 
+  public String getGameWinner(String code) {
+    return this.gameMap.get(code).getWinner();
+  }
+
+  public boolean isGameEnded(String code) {
+    return this.gameMap.get(code).getGameState() == GameState.FINISHED;
+  }
+
   private String generateCode() {
     StringBuilder code = new StringBuilder();
     for (int i = 0; i < CODE_LENGTH; i++) {
