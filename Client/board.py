@@ -5,26 +5,14 @@ from tkinter import messagebox
 
 LARGEFONT =("Arial", 30)
 
-"""
-Game Page
-1. Restart the game
-2. Close the game
-"""
 
 # global variables
 CLICKED = True
 COUNT = 0
 
-class Finish(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text ="Finish!!!", font = LARGEFONT)
-        label.grid(row = 1, column = 4, padx = 10, pady = 10)
-
 class Board(tk.Frame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.configure(bg='#333333')
+        tk.Frame.__init__(self, parent, bg='#333333')
 
         self.b1 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b1))
         self.b2 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b2))
@@ -51,14 +39,14 @@ class Board(tk.Frame):
         self.b9.grid(row=2, column=2)
         # self.buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9]
 
-        # TODO: restart game not work!
-        button1 = Button(self, text ="Restart a Game", bg='#AACE8F',
-                            command = lambda : controller.show_frame(Board))
+        # Quit a Game (will make a button disabled)
+        button1 = Button(self, text ="Quit", bg='#AACE8F',
+                            command = self.disableButtons)
 
         button1.grid(row=3, column=0, columnspan=2, pady=5)
-        # close the game
-        button2 = Button(self, text ="Close a Game", bg='#AACE8F',
-                            command = lambda : controller.show_frame(Finish))
+        # Back to Selection Page
+        button2 = Button(self, text ="Back", bg='#AACE8F',
+                            command = lambda : controller.show_frame('Select'))
 
         button2.grid(row=3, column=1, columnspan=2, pady=5)
 
