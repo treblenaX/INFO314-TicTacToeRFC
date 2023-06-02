@@ -78,9 +78,9 @@ public class GameMaster {
     return this.gameMap.get(code).getPlayers();
   }
 
-	public String whoseTurnInGame(String code) {
-		return this.gameMap.get(code).whoseTurn();
-	}
+  public String whoseTurnInGame(String code) {
+    return this.gameMap.get(code).whoseTurn();
+  }
 
   public void playerQuitGame(String code, String playerName) {
     Game game = this.gameMap.get(code);
@@ -98,7 +98,7 @@ public class GameMaster {
   }
 
   public String getGameWinner(String code) {
-    return this.gameMap.get(code).getWinner();
+    return (this.gameMap.get(code).getWinner() == null) ? "" : this.gameMap.get(code).getWinner();
   }
 
   public boolean isGameEnded(String code) {
