@@ -21,15 +21,16 @@ STAT? (Client -> Server)(Which the page should the get the response.)
 """
 
 import tkinter as tk
+from tkinter import *
 from tkmacosx import Button
 from tkinter import messagebox
-from board import Board
+# from board_test import Board
 
 
 LARGEFONT =("Arial", 30)
 
-# # global variables
-# CLICKED = True
+# global variables
+CLICKED = True
 # COUNT = 0
 
 class Windows(tk.Tk):
@@ -138,111 +139,102 @@ class List(tk.Frame):
                             command = lambda : controller.show_frame('Select'))
         backButton.pack(padx=5,  pady=15)
 
-# class Board(tk.Frame):
-#     def __init__(self, parent, controller):
-#         tk.Frame.__init__(self, parent, bg='#333333')
+class Board(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent, bg='#333333')
+        self.controller = controller
 
-#         self.b = [
-#             [0,0,0],
-#             [0,0,0],
-#             [0,0,0]]
+        self.b1 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b1))
+        self.b2 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b2))
+        self.b3 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b3))
 
-#         #text for buttons
-#         self.states = [
-#             [0,0,0],
-#             [0,0,0],
-#             [0,0,0]]
+        self.b4 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b4))
+        self.b5 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b5))
+        self.b6 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b6))
 
-#         for i in range(3):
-#             for j in range(3):
-#                 self.b[i][j] = Button(
-#                                 height = 180, width = 200,
-#                                 font = ("Arial", 30),
-#                                 command = lambda r = i, c = j : self.clicked(r,c))
-#                 self.b[i][j].grid(row = i, column = j)
+        self.b7 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b7))
+        self.b8 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b8))
+        self.b9 = Button(self, text=' ', font=("Arial", 80), height=180, width=200, bg='#333333',fg='#AACE8F', borderless=1, command=lambda: self.b_click(self.b9))
+
+        self.b1.grid(row=0, column=0)
+        self.b2.grid(row=0, column=1)
+        self.b3.grid(row=0, column=2)
+
+        self.b4.grid(row=1, column=0)
+        self.b5.grid(row=1, column=1)
+        self.b6.grid(row=1, column=2)
+
+        self.b7.grid(row=2, column=0)
+        self.b8.grid(row=2, column=1)
+        self.b9.grid(row=2, column=2)
+        # self.buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9]
+
+        # Quit a Game (will make a button disabled)
+        button1 = Button(self, text ="Quit", bg='#AACE8F',
+                            command = self.disableButtons)
+
+        button1.grid(row=3, column=0, columnspan=2, pady=5)
+        # Back to Selection Page
+        # referesh the board! (not work!)
+        # button2 = Button(self, text ="Back", bg='#AACE8F',
+        #                     command = lambda : controller.show_frame('Select'))
+        button2 = Button(self, text ="Back", bg='#AACE8F',
+                            command = self.refresh)
+
+        button2.grid(row=3, column=1, columnspan=2, pady=5)
+
+    def refresh(self):
+        global CLICKED
+        self.enableButtons()
+        self.b1.config(text=' ', bg='#333333')
+        self.b2.config(text=' ', bg='#333333')
+        self.b3.config(text=' ', bg='#333333')
+        self.b4.config(text=' ', bg='#333333')
+        self.b5.config(text=' ', bg='#333333')
+        self.b6.config(text=' ', bg='#333333')
+        self.b7.config(text=' ', bg='#333333')
+        self.b8.config(text=' ', bg='#333333')
+        self.b9.config(text=' ', bg='#333333')
+        CLICKED = True
+        self.controller.show_frame('Select')
+
+    def b_click(self, b):
+        global CLICKED
+        if b['text'] == " " and CLICKED == True:
+            b['text'] = "X"
+            CLICKED = False
+
+        elif b['text'] == " " and CLICKED == False:
+            b['text'] = "O"
+            CLICKED = True
+        else:
+            messagebox.showerror("Tic Tac Toe", "Hey! That box has already been selected\nPick Another Box...")
 
 
-#         # Quit a Game (will make a button disabled)
-#         # button1 = Button(self, text ="Quit", bg='#AACE8F', fg='black',
-#         #                     command = lambda : controller.show_frame('Select'))
+    # disable button
+    def disableButtons(self):
+        self.b1.config(state=DISABLED)
+        self.b2.config(state=DISABLED)
+        self.b3.config(state=DISABLED)
+        self.b4.config(state=DISABLED)
+        self.b5.config(state=DISABLED)
+        self.b6.config(state=DISABLED)
+        self.b7.config(state=DISABLED)
+        self.b8.config(state=DISABLED)
+        self.b9.config(state=DISABLED)
 
-#         # button1.grid(row=3, column=0, columnspan=2, pady=5)
-#         # # Back to Selection Page
-#         # button2 = Button(self, text ="Back", bg='#AACE8F', fg='black',
-#         #                     command = lambda : controller.show_frame('Select'))
+    # disable button
+    def enableButtons(self):
+        self.b1.config(state=ACTIVE)
+        self.b2.config(state=ACTIVE)
+        self.b3.config(state=ACTIVE)
+        self.b4.config(state=ACTIVE)
+        self.b5.config(state=ACTIVE)
+        self.b6.config(state=ACTIVE)
+        self.b7.config(state=ACTIVE)
+        self.b8.config(state=ACTIVE)
+        self.b9.config(state=ACTIVE)
 
-#         # button2.grid(row=3, column=1, columnspan=2, pady=5)
-
-#     def clicked(self, r, c):
-#         #player
-#         global Player1, COUNT
-#         # global stop_game
-
-#         if Player1 == "X" and self.states[r][c] == 0 and stop_game == False:
-#             self.b[r][c].configure(text = "X")
-#             self.states[r][c] = 'X'
-#             Player1='O'
-#             COUNT += 1
-#             self.check_if_win()
-
-
-#         elif Player1 == 'O' and self.states[r][c] == 0 and stop_game == False:
-#             self.b[r][c].configure(text = 'O')
-#             self.states[r][c] = "O"
-#             Player1 = "X"
-#             COUNT += 1
-#             self.check_if_win()
-
-#         else:
-#             messagebox.showerror("Tic Tac Toe", "Hey! That box has already been selected\nPick Another Box...")
-
-
-#     # disable button
-#     def disableButtons(self):
-#         pass
-#         # for i in range(3):
-#         #     for j in range(3):
-#         #         self.b[i][j].config(state=DISABLED)
-
-#     # Check to see if someone win
-#     def check_if_win(self):
-#         global stop_game
-#         # count = 0
-
-#         for i in range(3):
-#             if self.states[i][0] == self.states[i][1] == self.states[i][2] !=0:
-#                 stop_game = True
-#                 self.b[i][0].configure(bg='white')
-#                 self.b[i][1].configure(bg='white')
-#                 self.b[i][2].configure(bg='white')
-#                 winner = messagebox.showinfo("Winner", self.states[i][0] + " Won")
-#                 self.disableButtons()
-#                 break
-
-#         # for j in range(3):
-#             elif self.states [0][i] == self.states[1][i] == self.states[2][i] != 0:
-#                 stop_game = True
-#                 winner = messagebox.showinfo("Winner", self.states[0][i]+ " Won!")
-#                 self.disableButtons()
-#                 break
-
-#             elif self.states[0][0] == self.states[1][1] == self.states[2][2] !=0:
-#                 stop_game = True
-#                 winner = messagebox.showinfo("Winner", self.states[0][0]+ " Won!")
-#                 self.disableButtons()
-#                 break
-
-#             elif self.states[0][2] == self.states[1][1] == self.states[2][0] !=0:
-#                 stop_game = True
-#                 winner = messagebox.showinfo("Winner" , self.states[0][2]+ " Won!")
-#                 self.disableButtons()
-#                 break
-
-#             elif self.states[0][0] and self.states[0][1] and self.states[0][2] and self.states[1][0] and self.states[1][1] and self.states[1][2] and self.states[2][0] and self.states[2][1] and self.states[2][2] != 0:
-#                 stop_game = True
-#                 winner = messagebox.showinfo("tie", "It's a Tie!")
-#                 self.disableButtons()
-#                 break
 
 
 # Driver Code
