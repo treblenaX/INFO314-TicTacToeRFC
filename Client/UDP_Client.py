@@ -103,7 +103,8 @@ class UDP_Client:
     def handle_bord(self, response):
         board = response.split()[-1]
         if board != self.client_id:
-            self.game_board = [p for p in board.split("|") if p]
+            gameboard = [p for p in board.split("|") if p]
+            self.game_board = [gameboard[i:i+3] for i in range(0, len(gameboard), 3)]
 
     def handle_gams(self, response):
         self.game_list.clear()
