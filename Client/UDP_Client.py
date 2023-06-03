@@ -15,7 +15,7 @@ class UDP_Client:
         self.server_port = server_port
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.client_id = client_id
-        self.listen_thread = threading.Thread(target=self.listen_for_responses, daemon=True)
+        self.listen_thread = threading.Thread(daemon=True)
         self.listen_thread.start()
         self.session_id = ""
         self.game_id = ""
@@ -23,27 +23,28 @@ class UDP_Client:
         self.game_board = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.isWinner = False
         self.isLoser = False
+        self.startGame()
+        while(True):
+            response, _ = self.client_socket.recvfrom(1024)
+            print(response.decode('utf-8'))
+            self.handle_server_response(response.decode('utf-8'))
+
 
     def send(self, command):
         self.client_socket.sendto(command.encode('utf-8'), (self.server_ip, self.server_port))
-        response, _ = self.client_socket.recvfrom(1024)
-        return response.decode('utf-8')
 
-    def listen_for_responses(self):
-        while(True):
-            response, _ = self.client_socket.recvfrom(1024)
-            self.handle_server_response(response.decode('utf-8'))
-
+        
     # To start the game
     # This might change later
     def startGame(self):
         self.isLoser = False
         self.isWinner = False
-        return self.send(f'HELO 1 {self.client_id}')
+        command = 'HELO 1 {self.client_id}'
+        self.client_socket.sendto(command.encode('utf-8'), (self.server_ip, self.server_port))
 
     # Create a game
     def createGame(self):
-        return self.send(f'CREA {self.client_id}')
+        self.send(f'CREA {self.client_id}')
     
     # Join a Game
     def joinGame(self, gameID):
@@ -134,9 +135,7 @@ class UDP_Client:
 
 if __name__ == "__main__":
     client = UDP_Client('localhost', 3116, 'shivansh')
-
-    response = client.hello()
-    print(f"Server Response: {response}")
+    #print(f"Server Response: {response}")
 '''bytesToSend         = str.encode(msgFromClient)
 serverAddressPort   = ("127.0.0.1", 8000)
 bufferSize          = 1024
