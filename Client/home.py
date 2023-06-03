@@ -70,30 +70,37 @@ class Windows(tk.Tk):
         frame.tkraise()
 
 
-# first window frame startpage
+# 1st Frame: Startpage
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent, bg='#333333')
 
-        # Set everything in the middle of the screen
-
         # Create widgets
         login_label = tk.Label(self, text='Welcome to TicTacToe Game!', bg='#333333', fg='#AACE8F', font=("Arial", 35))
-        player_name = tk.Label(self, text='Please Enter Your Name:', bg='#333333', fg='#AACE8F', font=("Arial", 20))
-        self.player_entry = tk.Entry(self, font=("Arial", 20))
+        player = tk.Label(self, text='Please Enter Your Name:', bg='#333333', fg='#AACE8F', font=("Arial", 20))
+
+        name = tk.StringVar()
+        self.player_entry = tk.Entry(self, font=("Arial", 20), textvariable=name)
+
+        # get player's name
+        def get_player():
+            player_name = name.get()
+            print(player_name) # test
+            controller.show_frame("Select")
+
         login_button = tk.Button(
             self, text="Start", bg="#BAD0B9", fg="#333333", font=("Arial", 25), highlightbackground='#BAD0B9',
-            command = lambda : controller.show_frame("Select")
+            command = get_player
         )
 
 
         login_label.pack(padx=5,  pady=40)
-        player_name.pack(padx=5,  pady=15)
+        player.pack(padx=5,  pady=15)
         self.player_entry.pack()
         login_button.pack(padx=5,  pady=60)
 
 
-# Selection Page for Create or Join a Game
+# 2nd Frame: Selection Page for Create or Join a Game
 class Select(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -114,7 +121,7 @@ class Select(tk.Frame):
         button2.pack(padx=5,  pady=15)
 
 
-# show a list of games
+# Frame: show a list of games
 class List(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -139,6 +146,7 @@ class List(tk.Frame):
                             command = lambda : controller.show_frame('Select'))
         backButton.pack(padx=5,  pady=15)
 
+# Frame: Game Board
 class Board(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent, bg='#333333')
