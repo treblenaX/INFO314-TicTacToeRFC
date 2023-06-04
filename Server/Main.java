@@ -48,13 +48,18 @@ public class Main {
 
           executor.execute(() -> {  // open a stream per user
             LOGGER.info("TCP - Request received!");
+
+
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            String message = "";
             try {
-              BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-              boolean isClientDone;
-              do {
-                String inData = br.readLine();
+              boolean isClientDone = false;
+              do {  // r/programminghorror
                 TTTHandler handler = new TTTHandler(socket, gameMaster, sessionManager);
-                isClientDone = handler.handleRequest("t3tcp://", inData, socket.getInetAddress() + ":" + socket.getPort());
+                while ((bytesRead = socket.getInputStream().read(buffer)) != -1) {
+                  isClientDone = handler.handleRequest("t3tcp://", new String(buffer, 0, bytesRead), socket.getInetAddress() + ":" + socket.getPort());
+                }
               } while (!isClientDone);
               socket.close();
               LOGGER.info("TCP - thread STOPPED.");

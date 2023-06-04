@@ -18,9 +18,9 @@ class Client(threading.Thread):
 
         # Create a session
         print("Client is running!")
-        self.client.sendto(f"HELO 2 {self.name}".encode(), (self.server_ip, self.server_port))
-        msgFromServer = self.client.recvfrom(bufferSize)
-        msg1 = msgFromServer[0].decode()
+        self.client.sendall(f"HELO 1 {self.name}".encode())
+        msgFromServer = self.client.recv(bufferSize)
+        msg1 = msgFromServer.decode()
         print(msg1)
 
 
@@ -42,6 +42,7 @@ class Client(threading.Thread):
         # LIST or Create
         while True:
             input_msg = input("Enter a message to send: ")
+            print(input_msg)
             if input_msg == "quit":
                 exit()
             # print(input_msg)
