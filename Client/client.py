@@ -25,7 +25,6 @@ class Client(threading.Thread):
 
         # Create a session
         self.client.sendto(f"HELO 1 {self.name}".encode(), (self.server_ip, self.server_port))
-        self.clear_console()
         msgFromServer = self.client.recvfrom(bufferSize)
         msg1 = msgFromServer[0].decode()
 
@@ -46,7 +45,7 @@ class Client(threading.Thread):
                     message, addr = self.client.recvfrom(bufferSize)
                     # self.messages.put((message, addr))
                     # check messages
-                    message = message.decode()
+                    message = message.decode().strip()
                     tokens = message.split(' ')
                     if tokens[0] == 'YRMV':
                         player = tokens[2]
