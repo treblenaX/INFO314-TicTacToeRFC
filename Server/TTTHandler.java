@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 public class TTTHandler {
 
   private final Logger LOGGER = Logger.getLogger(TTTHandler.class.getName());
-  // private final Set<String> SUPPORTED_PROTOCOLS = new HashSet<String>(Arrays.asList("1"));
+   private final List<String> SUPPORTED_PROTOCOLS = new ArrayList<>(Arrays.asList("1"));
   private final byte[] BUFFER = new byte[1024];
   private Integer PORT = 3116;
   private GameMaster gameMaster;
@@ -57,6 +57,11 @@ public class TTTHandler {
       case "HELO":  // initiate a session
         String protocol = tokens[1];
         playerName = tokens[2];
+
+        // check protocol for compatibility
+        if (!SUPPORTED_PROTOCOLS.contains(protocol)) {
+          protocol = SUPPORTED_PROTOCOLS.get(SUPPORTED_PROTOCOLS.size() - 1);
+        }
 
         UUID uuid;
         do {
