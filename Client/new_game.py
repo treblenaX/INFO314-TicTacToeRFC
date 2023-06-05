@@ -1,8 +1,8 @@
 import os
 import socket
 import threading
-import time
 import logging
+import sys
 
 BUFFER_SIZE = 1024
 
@@ -42,8 +42,8 @@ class Game():
 		# load data switch case
 		if self.state == "LOAD SERVER CONNECTION":
 			# boot up the listening thread
-			listen_thread = threading.Thread(target=listen, args=(self,))
-			listen_thread.start()
+			self.listen_thread = threading.Thread(target=listen, args=(self,))
+			self.listen_thread.start()
 			self.event.wait()
 			send(self, f"HELO 1 {self.name}")
 		elif self.state == "LOAD CREATE":
@@ -74,12 +74,11 @@ class Game():
 			self.end_game()
 		elif self.state == "GDBY":
 			self.gdby()
-		# else:
-		# 	print("No State")  # test
 
 	def gdby(self):
+		self.is_connected = False
 		print("Thanks for playing!!!")
-		exit()
+		sys.exit()
 
 	def end_game(self):
 		print("Game Over!")
@@ -95,7 +94,7 @@ class Game():
 		if end_game_input == "y":
 			self.state = "MENU"
 		else:
-			self.state = "GDBY"
+			self.state = "LOAD DISCONNECT"
 
 		self.reset()
 		self.update()
@@ -168,6 +167,7 @@ class Game():
 		print("1. Create a new game")
 		print("2. Check open games")
 		print("3. Check all games")
+		print("4. Quit")
 		print()
 		print("Please select an option: ")
 
@@ -184,6 +184,9 @@ class Game():
 				is_option_selected = True
 			elif option == "3":
 				self.state = "LOAD LIST ALL"
+				is_option_selected = True
+			elif option == "4":
+				self.state = "LOAD DISCONNECT"
 				is_option_selected = True
 			else:
 				print("Invalid option, please try again!")
@@ -222,9 +225,9 @@ class Game():
 
 # sending to server thread
 def send(self, payload):
-	t = threading.Thread(target=send_thread, args=(self, payload,))
-	t.start()
-	t.join()
+	self.send_thread = threading.Thread(target=send_thread, args=(self, payload,))
+	self.send_thread.start()
+	self.send_thread.join()
 
 def send_thread(self, payload):
 	self.socket.sendto(f"{payload}".encode("utf-8"), (self.server_ip, self.server_port))
@@ -244,16 +247,17 @@ def listen(self):
 	self.is_connected = True
 	self.event.set()
 
-	# while loop
-	while self.is_connected:
-		data, addr = self.socket.recvfrom(BUFFER_SIZE)
-		message = data.decode("utf-8").strip()
-		logging.info(message)
-		# print("--------" + message + "--------")
-		t = threading.Thread(target=handle, args=(self, message,))
-		t.start()
-
-	self.socket.close()
+	try:
+		# while loop
+		while self.is_connected:
+			data, addr = self.socket.recvfrom(BUFFER_SIZE)
+			message = data.decode("utf-8").strip()
+			logging.info(message)
+			# print("--------" + message + "--------")
+			t = threading.Thread(target=handle, args=(self, message,))
+			t.start()
+	except (SystemExit):
+		self.socket.close()
 
 def handle(self, message):
 	tokens = message.split(' ')
@@ -297,8 +301,8 @@ def handle(self, message):
 			self.winner = tokens[2]
 		self.update()
 	elif command == "GDBY":	# session is cut - game is over
-		self.is_connected = False
-		return
+		self.state = "GDBY"
+		self.update()
 
 
 
