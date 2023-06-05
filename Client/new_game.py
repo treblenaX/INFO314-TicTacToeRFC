@@ -18,13 +18,7 @@ class Game():
 		self.server_ip = server_ip
 		self.server_port = server_port
 
-		self.room = None
-		self.board = None
-		self.games = None
-
-		self.is_game_init = True
-		self.is_game_started = False
-		self.whose_move = None
+		self.reset()
 
 		self.send_event = threading.Event()
 		self.event = threading.Event()
@@ -32,18 +26,25 @@ class Game():
 		self.state = "PROTO"
 		self.update()
 
+	def reset(self):
+		self.room = None
+		self.board = None
+		self.games = None
+
+		self.is_game_init = True
+		self.is_game_started = False
+		self.is_game_finished = False
+		self.whose_move = None
+
+
 	# call this whenever you want the UI to change or to do something
 	def update(self):
-		print()
-		print()
-		print()
 		# load data switch case
 		if self.state == "LOAD SERVER CONNECTION":
 			# boot up the listening thread
 			listen_thread = threading.Thread(target=listen, args=(self,))
 			listen_thread.start()
 			self.event.wait()
-
 			send(self, f"HELO 1 {self.name}")
 		elif self.state == "LOAD CREATE":
 			send(self, f"CREA {self.name}")
@@ -53,6 +54,8 @@ class Game():
 			send(self, "LIST ALL")
 		elif self.state == "LOAD GAME JOIN":
 			send(self, f"JOIN {self.room}")
+		elif self.state == "LOAD DISCONNECT":
+			send(self, f"GDBY")
 
 		# change UI switch case 
 		if self.state == "PROTO":
@@ -67,11 +70,39 @@ class Game():
 			self.list()
 		elif self.state == "WAITING":
 			self.waiting()
+		elif self.state == "END GAME":
+			self.end_game()
+		elif self.state == "GDBY":
+			self.gdby()
 		# else:
 		# 	print("No State")  # test
 
+	def gdby(self):
+		print("Thanks for playing!!!")
+		exit()
+
+	def end_game(self):
+		print("Game Over!")
+		print()
+		if self.winner is not None:
+			print(f"Winner: {self.winner}")
+		else:
+			print("Tie Game!")
+		print()
+		print("Would you like to play again? (y/n)")
+
+		end_game_input = input('>').lower().strip()
+		if end_game_input == "y":
+			self.state = "MENU"
+		else:
+			self.state = "GDBY"
+
+		self.reset()
+		self.update()
+
+
 	def list(self):	# @TODO Shivansh
-		# clear_console()
+		clear_console()
 
 		print("Check these games out!")
 		print()
@@ -92,13 +123,15 @@ class Game():
 		self.update()
 		
 	def waiting(self):
-		dot_count = 1
+		clear_console()
+		print("Joined room: " + self.room)
+		print()
 		print("Waiting for another player to join...")
 	
 	def game(self):
 		# IN_PLAY - game has started
 		# while not self.is_game_finished:
-		# clear_console()
+		clear_console()
 		
 		print("You: " + self.name)
 		print("Room: " + self.room)
@@ -128,7 +161,7 @@ class Game():
 			
 
 	def menu(self):
-		# clear_console()
+		clear_console()
 
 		print("Welcome! " + self.name)
 		print()
@@ -168,7 +201,19 @@ class Game():
 		print("Welcome to TicTacToe!")
 		print()
 		print("How would you like to communicate to the server (TCP/UDP)?")
+
+		is_protocol_select = False
 		self.protocol = input(">").upper()
+		
+		while not is_protocol_select:
+			if self.protocol == "TCP":
+				is_protocol_select = True
+			elif self.protocol == "UDP":
+				is_protocol_select = True
+			else:
+				print("Invalid protocol, please try again!")
+				self.protocol = input(">").upper()
+
 		self.state = "NAME"
 		self.update()
 
@@ -204,11 +249,9 @@ def listen(self):
 		data, addr = self.socket.recvfrom(BUFFER_SIZE)
 		message = data.decode("utf-8").strip()
 		logging.info(message)
-		print("--------" + message + "--------")
-		# handle(self, message)
+		# print("--------" + message + "--------")
 		t = threading.Thread(target=handle, args=(self, message,))
 		t.start()
-		# t.join()
 
 	self.socket.close()
 
@@ -229,7 +272,6 @@ def handle(self, message):
 			self.is_game_init = False
 			self.is_game_started = True
 			self.whose_move = tokens[2]
-			print(self.whose_move)
 			self.state = "GAME"
 			self.update()
 	elif command == "GAMS":
@@ -238,21 +280,24 @@ def handle(self, message):
 		self.update()
 	elif command == "BORD":
 		self.whose_move = tokens[4]
-		print("BOARD")
-		print(self.whose_move)
 		if (len(tokens) >= 5): 
 			raw_board = tokens[5]
 			self.board = raw_board.split('|')[1:]
 		self.update()
 	elif command == "TERM":
 		# tie case
-		if (len(tokens) == 1):
+		if (len(tokens) == 3):
 			self.is_game_finished = True
-			self.state = "MENU"
+			self.state = "END GAME"
+			self.winner = None
 		# winner is found
-
+		if (len(tokens) == 4):
+			self.is_game_finished = True
+			self.state = "END GAME"
+			self.winner = tokens[2]
+		self.update()
 	elif command == "GDBY":	# session is cut - game is over
-		self.is_connected = True
+		self.is_connected = False
 		return
 
 
