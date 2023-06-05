@@ -237,7 +237,9 @@ def handle(self, message):
 		self.state = "LIST"
 		self.update()
 	elif command == "BORD":
-		self.whose_move = tokens[2]
+		self.whose_move = tokens[4]
+		print("BOARD")
+		print(self.whose_move)
 		if (len(tokens) >= 5): 
 			raw_board = tokens[5]
 			self.board = raw_board.split('|')[1:]
