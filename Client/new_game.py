@@ -27,6 +27,9 @@ class Game():
 		self.update()
 
 	def reset(self):
+		self.game_stat_dict = {}
+		self.list_queue = []
+
 		self.room = None
 		self.board = None
 		self.games = None
@@ -45,6 +48,7 @@ class Game():
 			self.listen_thread = threading.Thread(target=listen, args=(self,))
 			self.listen_thread.start()
 			self.event.wait()
+			self.event.clear()
 			send(self, f"HELO 1 {self.name}")
 		elif self.state == "LOAD CREATE":
 			send(self, f"CREA {self.name}")
@@ -56,6 +60,14 @@ class Game():
 			send(self, f"JOIN {self.room}")
 		elif self.state == "LOAD DISCONNECT":
 			send(self, f"GDBY")
+		elif self.state == "LOAD LIST STAT":
+			self.list_queue = self.games
+			for game in self.games:
+				send(self, f"STAT {game}")
+				self.event.wait()
+				self.event.clear()
+			self.state = "LIST"
+			self.update()
 
 		# change UI switch case 
 		if self.state == "PROTO":
@@ -103,19 +115,26 @@ class Game():
 	def list(self):	# @TODO Shivansh
 		clear_console()
 
-		print("Check these games out!")
-		print()
-		for game in self.games:
-			print(game)
-			# @TODO Shivansh print game information for each of these
-		print()
-		print("To join a game, type the game code - ex: AAAA")
-		print("To leave, type leave().")
-		print()
+		if len(self.game_stat_dict) == 0:
+			print("There are no games available...")
+			print()
+			print("To create a game, type create().")
+		else:
+			print("Check these games out!")
+			print(self.game_stat_dict)
+			print()
+			print()
+			print("To join a game, type the game code - ex: AAAA")
+			print("To leave, type leave().")
+			print("To create a game, type create().")
+			print()
+
 		list_input = input('>').strip()
 
 		if (list_input == "leave()"):
 			self.state = "MENU"
+		elif (list_input == "create()"):
+			self.state = "LOAD CREATE"
 		else: 
 			self.room = list_input
 			self.state = "LOAD GAME JOIN"
@@ -145,7 +164,7 @@ class Game():
 			print(" -----------")
 			print("  " + self.board[6] + " | " + self.board[7] + " | " + self.board[8])
 			print()
-			
+
 			if self.whose_move == self.name:
 				print(f"It's your turn, {self.name}!")
 				print("Please select a position (1-9): ")
@@ -229,7 +248,6 @@ def send(self, payload):
 
 def send_thread(self, payload):
 	self.socket.sendto(f"{payload}".encode("utf-8"), (self.server_ip, self.server_port))
-	# self.event.wait()
 
 	# server listening thread
 def listen(self):
@@ -278,10 +296,10 @@ def handle(self, message):
 			self.update()
 	elif command == "GAMS":
 		self.games = tokens[1:]
-		self.state = "LIST"
+		self.state = "LOAD LIST STAT"
 		self.update()
 	elif command == "BORD":
-		if self.is_game_started:	# store for STAT case
+		if not self.is_game_started:	# store for STAT case
 			room = tokens[1]
 			player_1 = tokens[2]
 
@@ -294,7 +312,11 @@ def handle(self, message):
 				self.game_stat_dict[room]["player_turn"] = tokens[4]
 				self.game_stat_dict[room]["board"] = tokens[5]
 				if (len(tokens) == 6): self.game_stat_dict[room]["winner"] = tokens[6]
-			self.state = "LIST"
+
+			self.list_queue.remove(room)
+
+			if (len(self.list_queue) == 0):
+				self.event.set()
 		else:
 			# handle game interaction and update with BORD
 			self.whose_move = tokens[4]
