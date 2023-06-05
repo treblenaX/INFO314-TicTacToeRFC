@@ -10,7 +10,7 @@ def clear_console():
 	os.system(command)
 
 
-class Console():
+class Game():
 	def __init__(self, server_ip, server_port):
 		self.server_ip = server_ip
 		self.server_port = server_port
@@ -21,69 +21,73 @@ class Console():
 		self.games = None
 
 		self.event = threading.Event()
-
-		print("Welcome to Tic Tac Toe Game!")
-
+		
 		self.update()
-
-	# def wait(self):
-	# 	self.event.wait()
-		# self.response_event.clear()
 
 	# call this whenever you want the UI to change or to do something
 	def update(self):
-		print(self.state)
+		# load data switch case
+		if self.state == "LOAD SERVER CONNECTION":
+			# boot up the listening thread
+			listen_thread = threading.Thread(target=listen, args=(self,))
+			listen_thread.start()
+			self.event.wait()
+
+			send(self, f"HELO 1 {self.name}")
+		elif self.state == "LOAD CREATE":
+			send(self, f"CREA {self.name}")
+		elif self.state == "LOAD LIST":
+			send(self, "LIST CURR")
+		elif self.state == "LOAD LIST ALL":
+			send(self, "LIST CURR")
+		elif self.state == "LOAD GAME JOIN":
+			send(self, f"JOIN {self.room}")
+
+		# change UI switch case 
 		if self.state == "PROTO":
 			self.proto()
 		elif self.state == "NAME":
 			self.name()
-		elif self.state == "INIT_SERVER":
-			listen_thread = threading.Thread(target=listen, args=(self,))
-			listen_thread.start()
-			self.event.wait()
-			self.state = "CONNECT"
-			self.update()
-		elif self.state == "CONNECT":
-			send(self, f"HELO 1 {self.name}")
-			self.event.wait()
 		elif self.state == "MENU":
 			self.menu()
-		elif self.state == "CREATE":
-			self.create()
 		elif self.state == "GAME":
 			self.game()
-		elif self.state == "DISPLAY LIST":
+		elif self.state == "LIST":
 			self.list()
-		elif self.state == "LIST ALL":
-			# print("check list all")
-			send(self, "LIST ALL")
-			self.event.wait()
-			# print("waiting")
-		elif self.state == "LOAD LIST":
-			send(self, "LIST CURR")
-			self.event.wait()
-			# self.state = "DISPLAY LIST"
-			# self.update()
-		else:
-			print("No State")  # test
+		# else:
+		# 	print("No State")  # test
 
-	def list(self):
-		print("Open games:", self.games)
-		self.state = " " # test for No State
+	def list(self):	# @TODO Shivansh
+		clear_console()
 
+		print("Check these games out!")
+		print()
+		for game in self.games:
+			print(game)
+			# @TODO Shivansh print game information for each of these
+		print()
+		print("To join a game, type the game code - ex: AAAA")
+		print("To leave, type leave().")
+		print()
+		list_input = input('>').strip()
+
+		if (list_input == "leave()"):
+			self.state = "MENU"
+		else: 
+			self.room = list_input
+			self.state = "LOAD GAME JOIN"
+		self.update()
 
 	def game(self):
 		self.game_start = False
 		clear_console()
+
 		print("You: " + self.name)
 		print("Room: " + self.room)
 		print()
 
 		if not self.game_start:
 			print("Waiting for another player to join...")
-
-	def create(self):
-		send(self, f"CREA {self.name}")
 
 	def menu(self):
 		clear_console()
@@ -96,30 +100,37 @@ class Console():
 		print()
 		print("Please select an option: ")
 
-		option = input()
+		is_option_selected = False
 
-		if option == "1":
-			self.state = "CREATE"
-		elif option == "2":
-			self.state = "LOAD LIST"
-		elif option == "3":
-			self.state = "LIST ALL"
-		else:
-			print("Invalid option, please try again!")
+		while not is_option_selected:
+			option = input(">")
+
+			if option == "1":
+				self.state = "LOAD CREATE"
+				is_option_selected = True
+			elif option == "2":
+				self.state = "LOAD LIST"
+				is_option_selected = True
+			elif option == "3":
+				self.state = "LOAD LIST ALL"
+				is_option_selected = True
+			else:
+				print("Invalid option, please try again!")
 
 		self.update()
 
 	def name(self):
-		clear_console()
-
-		self.name = input("Please input your name: ")
-		self.state = "INIT_SERVER"
+		print()
+		print("Please input your name: ")
+		self.name = input(">")
+		self.state = "LOAD SERVER CONNECTION"
 		self.update()
 
 	def proto(self):
-		clear_console()
-
-		self.protocol = input("Which protocol version are you using now? (TCP/UDP)").upper()
+		print("Welcome to TicTacToe!")
+		print()
+		print("How would you like to communicate to the server (TCP/UDP)?")
+		self.protocol = input(">").upper()
 		self.state = "NAME"
 		self.update()
 
@@ -128,17 +139,12 @@ class Console():
 
 # sending to server thread
 def send(self, payload):
-	# print(payload)
 	self.socket.sendto(f"{payload}".encode("utf-8"), (self.server_ip, self.server_port))
-	# print("have sent from client to server")
-		# test
-
+	self.event.wait()
 
 	# server listening thread
 def listen(self):
-	print("Listening...")
-	print("state", self.state)
-
+	# Handle the response from the server and update the UI accordingly
 	def handle(message):
 		tokens = message.split(' ')
 		command = tokens[0]
@@ -155,17 +161,11 @@ def listen(self):
 				self.game_started = True
 		elif command == "GAMS":
 			self.games = tokens[1:]
-			print(self.games)
-
-			room_game = input("Select a Room you want to join:")
-			send(self, f"JOIN {room_game}")
-
-			# test
-			# self.state = " "
+			self.state = "LIST"
 
 		self.update()
 
-	# check version
+	# check protocol to use
 	if self.protocol == 'UDP':
 			self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	elif self.protocol == 'TCP':
@@ -174,14 +174,12 @@ def listen(self):
 
 	self.is_connected = True
 	self.event.set()
-	print("DEBUG: Listening to server...")
 	# time.sleep(3)
 
 		# while loop
 	while self.is_connected:
-		print("running the while loop")
 		message = self.socket.recvfrom(BUFFER_SIZE)[0].decode("utf-8").strip()
-		print("Receiver from Server: ", message)
+		# print("Receiver from Server: ", message)
 		handle(message)
 		self.event.set()
 
@@ -190,4 +188,5 @@ def listen(self):
 
 
 if __name__ == "__main__":
-	console = Console('localhost', 3116)
+	clear_console()
+	game = Game('localhost', 3116)
