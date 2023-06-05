@@ -145,9 +145,7 @@ class Game():
 			print(" -----------")
 			print("  " + self.board[6] + " | " + self.board[7] + " | " + self.board[8])
 			print()
-
-			print('test')
-			print(self.whose_move)
+			
 			if self.whose_move == self.name:
 				print(f"It's your turn, {self.name}!")
 				print("Please select a position (1-9): ")
@@ -283,11 +281,27 @@ def handle(self, message):
 		self.state = "LIST"
 		self.update()
 	elif command == "BORD":
-		self.whose_move = tokens[4]
-		if (len(tokens) >= 5): 
-			raw_board = tokens[5]
-			self.board = raw_board.split('|')[1:]
-		self.update()
+		if self.is_game_started:	# store for STAT case
+			room = tokens[1]
+			player_1 = tokens[2]
+
+			self.game_stat_dict[room] = {
+				"player_1": player_1,
+			}
+
+			if (len(tokens) >= 5):	# game in play or finished
+				self.game_stat_dict[room]["player_2"] = tokens[3]
+				self.game_stat_dict[room]["player_turn"] = tokens[4]
+				self.game_stat_dict[room]["board"] = tokens[5]
+				if (len(tokens) == 6): self.game_stat_dict[room]["winner"] = tokens[6]
+			self.state = "LIST"
+		else:
+			# handle game interaction and update with BORD
+			self.whose_move = tokens[4]
+			if (len(tokens) >= 5): 
+				raw_board = tokens[5]
+				self.board = raw_board.split('|')[1:]
+			self.update()
 	elif command == "TERM":
 		# tie case
 		if (len(tokens) == 3):
