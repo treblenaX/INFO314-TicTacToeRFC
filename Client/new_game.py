@@ -3,6 +3,7 @@ import socket
 import threading
 import time
 import logging
+import errno
 
 BUFFER_SIZE = 1024
 
@@ -45,7 +46,6 @@ class Game():
 			send(self, "LIST ALL")
 		elif self.state == "LOAD GAME JOIN":
 			send(self, f"JOIN {self.room}")
-			send(self)
 
 		# change UI switch case 
 		if self.state == "PROTO":
@@ -186,8 +186,8 @@ class Game():
 #--------------------------------Outside the Class--------------------------------
 
 # sending to server thread
-def send(self, payload=None):
-	if payload is not None: self.socket.sendto(f"{payload}".encode("utf-8"), (self.server_ip, self.server_port))
+def send(self, payload):
+	self.socket.sendto(f"{payload}".encode("utf-8"), (self.server_ip, self.server_port))
 	# self.event.wait()
 
 	# server listening thread
@@ -226,29 +226,16 @@ def listen(self):
 
 	self.is_connected = True
 	self.event.set()
-	# time.sleep(3)
 
-		# while loop
-	received_data = b""
+	# while loop
 	while self.is_connected:
-		data, _ = self.socket.recvfrom(BUFFER_SIZE)
-		received_data += data
-
-		if not data:
-			# If the received data is empty, the server has closed the connection
-			print('Connection closed by the server')
-			break
-
-		if data.endswith(b"\n"):
-			# If the received data ends with a newline character, it indicates the end of a complete message
-			message = received_data.decode("utf-8").strip()
-			print("Received from Server:", message)
-			logging.info(message)
-			handle(message)
-			self.event.set()
-			received_data = b""
+		data, addr = self.socket.recvfrom(BUFFER_SIZE)
+		message = data.decode("utf-8").strip()
+		logging.info(message)
+		handle(message)
 
 	self.socket.close()
+
 
 
 
