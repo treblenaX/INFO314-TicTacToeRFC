@@ -3,7 +3,6 @@ import socket
 import threading
 import time
 import logging
-import errno
 
 BUFFER_SIZE = 1024
 
@@ -21,15 +20,23 @@ class Game():
 
 		self.room = None
 		self.board = None
-		self.state = "PROTO"
 		self.games = None
 
+		self.is_game_init = True
+		self.is_game_started = False
+		self.whose_move = None
+
+		self.send_event = threading.Event()
 		self.event = threading.Event()
 
+		self.state = "PROTO"
 		self.update()
 
 	# call this whenever you want the UI to change or to do something
 	def update(self):
+		print()
+		print()
+		print()
 		# load data switch case
 		if self.state == "LOAD SERVER CONNECTION":
 			# boot up the listening thread
@@ -58,13 +65,13 @@ class Game():
 			self.game()
 		elif self.state == "LIST":
 			self.list()
-		elif self.state == "WAITING ROOM":
-			self.waiting_room()
+		elif self.state == "WAITING":
+			self.waiting()
 		# else:
 		# 	print("No State")  # test
 
 	def list(self):	# @TODO Shivansh
-		clear_console()
+		# clear_console()
 
 		print("Check these games out!")
 		print()
@@ -84,41 +91,20 @@ class Game():
 			self.state = "LOAD GAME JOIN"
 		self.update()
 		
-	def waiting_room(self):
+	def waiting(self):
 		dot_count = 1
-
-		# OPEN - game hasn't started yet
-		while not self.is_game_started:
-			clear_console()
-
-			print("You: " + self.name)
-			print("Room: " + self.room)
-			print()
-			if (dot_count == 3):
-				dot_count = 1
-			else:
-				dot_count += 1
-			
-			dots = ""
-				
-			for i in range(0, dot_count):
-				dots += "."
-			print("Waiting for another player to join" + dots)
-
-			time.sleep(1)
-
-		# init board
-		self.board = ['*', '*', '*', '*', '*', '*', '*', '*', '*']
+		print("Waiting for another player to join...")
 	
 	def game(self):
 		# IN_PLAY - game has started
-		while not self.is_game_finished:
-			clear_console()
+		# while not self.is_game_finished:
+		# clear_console()
+		
+		print("You: " + self.name)
+		print("Room: " + self.room)
+		print()
 
-			print("P1: " + self.player_1)
-			print("P2: " + self.player_2)
-			print("Room: " + self.room)
-			print()
+		if self.is_game_started:
 			print("GAME ON!!!")
 			print()
 			print("  " + self.board[0] + " | " + self.board[1] + " | " + self.board[2])
@@ -128,6 +114,8 @@ class Game():
 			print("  " + self.board[6] + " | " + self.board[7] + " | " + self.board[8])
 			print()
 
+			print('test')
+			print(self.whose_move)
 			if self.whose_move == self.name:
 				print(f"It's your turn, {self.name}!")
 				print("Please select a position (1-9): ")
@@ -135,10 +123,12 @@ class Game():
 				send(self, f"MOVE {self.room} {move_input}")
 			else:
 				print("Waiting for the other player to move...")
+		else:
+			print("Waiting for player...")
 			
 
 	def menu(self):
-		clear_console()
+		# clear_console()
 
 		print("Welcome! " + self.name)
 		print()
@@ -187,42 +177,24 @@ class Game():
 
 # sending to server thread
 def send(self, payload):
+	t = threading.Thread(target=send_thread, args=(self, payload,))
+	t.start()
+	t.join()
+
+def send_thread(self, payload):
 	self.socket.sendto(f"{payload}".encode("utf-8"), (self.server_ip, self.server_port))
 	# self.event.wait()
 
 	# server listening thread
 def listen(self):
 	# Handle the response from the server and update the UI accordingly
-	def handle(message):
-		tokens = message.split(' ')
-		command = tokens[0]
-
-		if command == "SESS":	# session is created
-			self.state = "MENU"
-		elif command == "JOND":	# joined a game
-			self.state = "WAITING ROOM"
-			self.room = tokens[2]
-			self.is_game_started = False
-		elif command == "YRMV": # moving
-			self.state = "GAME"
-			self.whose_move = tokens[2]
-			if not self.is_game_started:	# player has joined - start game
-				self.is_game_started = True
-		elif command == "GAMS":
-			self.games = tokens[1:]
-			self.state = "LIST"
-		elif command == "BORD":
-			self.player_1 = tokens[2]
-			if (len(tokens) >= 3): self.player_2 = tokens[3]
-			if (len(tokens) >= 5): self.board = tokens[4]
-		self.update()
 
 	# check protocol to use
 	if self.protocol == 'UDP':
-			self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	elif self.protocol == 'TCP':
-			self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			self.socket.connect((self.server_ip, self.server_port))
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.socket.connect((self.server_ip, self.server_port))
 
 	self.is_connected = True
 	self.event.set()
@@ -232,9 +204,54 @@ def listen(self):
 		data, addr = self.socket.recvfrom(BUFFER_SIZE)
 		message = data.decode("utf-8").strip()
 		logging.info(message)
-		handle(message)
+		print("--------" + message + "--------")
+		# handle(self, message)
+		t = threading.Thread(target=handle, args=(self, message,))
+		t.start()
+		# t.join()
 
 	self.socket.close()
+
+def handle(self, message):
+	tokens = message.split(' ')
+	command = tokens[0]
+
+	if command == "SESS":	# session is created
+		self.state = "MENU"
+		self.update()
+	elif command == "JOND":	# joined a game
+		self.room = tokens[2]
+		self.state = "WAITING"
+		self.update()
+	elif command == "YRMV": # moving
+		if self.is_game_init:
+			self.board = ['*', '*', '*', '*', '*', '*', '*', '*', '*']
+			self.is_game_init = False
+			self.is_game_started = True
+			self.whose_move = tokens[2]
+			print(self.whose_move)
+			self.state = "GAME"
+			self.update()
+	elif command == "GAMS":
+		self.games = tokens[1:]
+		self.state = "LIST"
+		self.update()
+	elif command == "BORD":
+		self.whose_move = tokens[2]
+		if (len(tokens) >= 5): 
+			raw_board = tokens[5]
+			self.board = raw_board.split('|')[1:]
+		self.update()
+	elif command == "TERM":
+		# tie case
+		if (len(tokens) == 1):
+			self.is_game_finished = True
+			self.state = "MENU"
+		# winner is found
+
+	elif command == "GDBY":	# session is cut - game is over
+		self.is_connected = True
+		return
 
 
 

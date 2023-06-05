@@ -49,6 +49,7 @@ class Client(threading.Thread):
                     # self.messages.put((message, add))
                     # check messages
                     message = message.decode().strip()
+                    print(message)
                     tokens = message.split(' ')
                     command = tokens[0]
 
