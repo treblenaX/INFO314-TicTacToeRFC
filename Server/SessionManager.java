@@ -49,9 +49,7 @@ public class SessionManager {
 
   private Map<String, User> sessions = new HashMap<>();
 
-  public void endSession(String playerName) {
-    sessions.remove(playerName);
-  }
+  public void endSession(String playerName) { sessions.remove(playerName); }
 
   public boolean isUserInSession(String uuid) {
     for (Map.Entry<String, User> entry : sessions.entrySet()) {

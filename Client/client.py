@@ -8,6 +8,9 @@ bufferSize = 1024
 class Client(threading.Thread):
     def __init__(self, server_ip, server_port, name, version):
         threading.Thread.__init__(self)
+
+        self.is_running = True
+
         self.server_ip = server_ip
         self.server_port = server_port
 
@@ -47,27 +50,34 @@ class Client(threading.Thread):
                     # check messages
                     message = message.decode().strip()
                     tokens = message.split(' ')
-                    if tokens[0] == 'YRMV':
+                    command = tokens[0]
+                    
+                    if command == 'YRMV':
                         player = tokens[2]
                         # print(player)
                         self.show_turn(player)
                         # self.show_board(board)
-                    elif tokens[0] == 'BORD' and len(tokens) > 3:
+                    elif command == 'BORD' and len(tokens) > 3:
                         board = tokens[5]
                         self.board = board
                         # print(board)
                         self.show_board(board)
-                    elif tokens[0] == 'TERM' and len(tokens) >= 4:
+                    elif command == 'TERM' and len(tokens) >= 4:
                         winner = tokens[2]
                         print("Winner is " + winner + "!")
-                        print("Do you want to start a second game? (y/n)")
-                        reply = input()
-                        if reply == 'y':
-                            self.clear_console()
-                            self.start_page()
-                        else:
-                            # TODO I have no idea for this
-                            pass
+                        self.exit_game()
+
+                        # if:
+                        #     self.clear_console()
+                        #     self.start_page()
+                        # else:   # GDBY
+                        #     self.client.sendto(f"GDBY".strip().encode(), (self.server_ip, self.server_port))
+                        #     self.is_running = False
+                        #     pass
+                    elif command == 'GDBY':
+                        print("Thanks for playing!")
+                        self.is_running = False
+                        return
                     else:
                         # TODO other cases like JOND, QUIT ?
                         print("Server: ", message)
@@ -78,7 +88,7 @@ class Client(threading.Thread):
         t.start()
 
         # start the game
-        while True:
+        while self.is_running:
             # while not self.messages.empty():
             #     message, addr = self.messages.get()
             #     print("Receive from Server: ", message.decode())
@@ -95,6 +105,18 @@ class Client(threading.Thread):
     def clear_console(self):
         command = 'clear'
         os.system(command)
+
+    def exit_game(self):
+        response = input("Do you want to play again? (Y/N)").lower()
+        if response == 'y':
+            self.clear_console()
+            self.start_page()
+        else:   # GDBY
+            self.client.sendto(f"GDBY".strip().encode(), (self.server_ip, self.server_port))
+            self.is_running = False
+            pass
+        
+            
 
 
     # send CREA to server

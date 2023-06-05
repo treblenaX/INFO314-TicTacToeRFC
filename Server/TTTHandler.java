@@ -32,6 +32,8 @@ public class TTTHandler {
     String[] tokens = input.split(" ");
     String command = tokens[0].toUpperCase(); // commands are case-insensitive
 
+    LOGGER.info(Arrays.toString(tokens));
+
     switch (command) {
       case "CREA":  // create a new game
         String playerName = tokens[1];
@@ -41,7 +43,7 @@ public class TTTHandler {
         LOGGER.info("CREA - game created - " + gameCode);
 
         String response = "JOND " + playerName + " " + gameCode;
-        sessionManager.getSession(playerName).send(response);
+        sessionManager.getSession(playerName).send(response.trim());
         return false;
       case "GDBY":  // goodbye - finished with session
         playerName = sessionManager.findPlayerNameFromIP(prefix + senderLocation);
@@ -49,10 +51,10 @@ public class TTTHandler {
         if ((gameCode = gameMaster.isPlayerInGame(playerName)) != null) {
           gameMaster.playerQuitGame(gameCode, playerName);
         }
-        sessionManager.endSession(playerName);
 
         response = "GDBY";
-        sessionManager.getSession(playerName).send(response);
+        sessionManager.getSession(playerName).send(response.trim());
+        sessionManager.endSession(playerName);
         return true;
       case "HELO":  // initiate a session
         String protocol = tokens[1];
@@ -75,7 +77,7 @@ public class TTTHandler {
         }
 
         response = "SESS " + protocol + " " + uuid;
-        sessionManager.getSession(playerName).send(response);
+        sessionManager.getSession(playerName).send(response.trim());
         return false;
       case "JOIN":  // join an existing game
         gameCode = tokens[1];
@@ -83,13 +85,13 @@ public class TTTHandler {
         gameMaster.joinGame(gameCode, playerName);
 
         response = "JOND " + playerName + " " + gameCode;
-        sessionManager.getSession(playerName).send(response);
+        sessionManager.getSession(playerName).send(response.trim());
 
         // if game is full - start game - send YRMV
         if (gameMaster.isGamePlayersFull(gameCode)) {
           response = "YRMV " + gameCode + " " + gameMaster.whoseTurnInGame(gameCode);
           for (String player : gameMaster.getGamePlayers(gameCode)) {
-            sessionManager.getSession(player).send(response);
+            sessionManager.getSession(player).send(response.trim());
           }
         }
         return false;
@@ -115,7 +117,7 @@ public class TTTHandler {
 
         response = "GAMS";
         for (String gameId : list) response += " " + gameId;
-        sessionManager.getSession(playerName).send(response);
+        sessionManager.getSession(playerName).send(response.trim());
         return false;
       case "MOVE":  // make a move
         gameCode = tokens[1];
@@ -137,7 +139,7 @@ public class TTTHandler {
 
           response = "TERM " + termResponse;
           for (String player : gameMaster.getGamePlayers(gameCode)) {
-            sessionManager.getSession(player).send(response);
+            sessionManager.getSession(player).send(response.trim());
           }
           break;
         }
@@ -145,12 +147,12 @@ public class TTTHandler {
         // Send board response
         response = "BORD " + boardResponse;
         for (String player : gameMaster.getGamePlayers(gameCode)) {
-          sessionManager.getSession(player).send(response);
+          sessionManager.getSession(player).send(response.trim());
         }
         // Say whose turn it is next
         response = "YRMV " + gameCode + " " + gameMaster.whoseTurnInGame(gameCode);
         for (String player : gameMaster.getGamePlayers(gameCode)) {
-          sessionManager.getSession(player).send(response);
+          sessionManager.getSession(player).send(response.trim());
         }
         return false;
       case "QUIT":  // quit a game
@@ -160,7 +162,7 @@ public class TTTHandler {
 
         response = "TERM " + gameCode + this.gameMaster.getGameWinner(gameCode) + " KTHXBYE";
         for (String player : gameMaster.getGamePlayers(gameCode)) {
-          sessionManager.getSession(player).send(response);
+          sessionManager.getSession(player).send(response.trim());
         }
 
         gameMaster.playerQuitGame(gameCode, playerName);
@@ -169,7 +171,7 @@ public class TTTHandler {
         gameCode = tokens[1];
         playerName = sessionManager.findPlayerNameFromIP(prefix + senderLocation);
         response = "BORD " + gameMaster.getGameStatus(gameCode);
-        sessionManager.getSession(playerName).send(response);
+        sessionManager.getSession(playerName).send(response.trim());
         return false;
       default:  // undefined command
         throw new Error("Unable to understand command.");

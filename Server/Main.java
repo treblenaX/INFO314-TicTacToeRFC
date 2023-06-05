@@ -49,10 +49,9 @@ public class Main {
           executor.execute(() -> {  // open a stream per user
             LOGGER.info("TCP - Request received!");
 
-
             byte[] buffer = new byte[1024];
             int bytesRead;
-            String message = "";
+
             try {
               boolean isClientDone = false;
               do {  // r/programminghorror
