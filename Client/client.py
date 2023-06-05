@@ -43,7 +43,7 @@ class Client(threading.Thread):
             while True:
                 try:
                     message, addr = self.client.recvfrom(bufferSize)
-                    # self.messages.put((message, addr))
+                    # self.messages.put((message, add))
                     # check messages
                     message = message.decode().strip()
                     tokens = message.split(' ')
@@ -82,9 +82,6 @@ class Client(threading.Thread):
             # while not self.messages.empty():
             #     message, addr = self.messages.get()
             #     print("Receive from Server: ", message.decode())
-
-            print("Your room is: " + self.room)
-
             input_msg = input()
             if input_msg == "quit":
                 exit()
@@ -109,6 +106,7 @@ class Client(threading.Thread):
         self.clear_console()
         room = msg2.split(' ')[2]
         self.room = room
+        print("You: " + self.name)
         print("Your room is: " + room)
         print("Please wait for other player join in!")
 
@@ -187,6 +185,7 @@ class Client(threading.Thread):
                 msg = msgFromServer[0].decode()
                 print(msg)
                 self.clear_console()
+                print("You: " + self.name)
                 print("Your room is: " + self.room)
         elif response == '3':
             self.clear_console()
@@ -197,8 +196,6 @@ class Client(threading.Thread):
             msg2 = msgFromServer[0].decode()
             print(msg2)
             # TODO check STAT
-
-
 
 if __name__ == "__main__":
     thread = Client('localhost', 3116, 'Sophie')
