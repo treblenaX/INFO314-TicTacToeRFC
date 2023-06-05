@@ -1,12 +1,14 @@
 import os
 import socket
 import threading
+import time
 
 BUFFER_SIZE = 1024
 
 def clear_console():
 	command = 'clear'
 	os.system(command)
+
 
 class Console():
 	def __init__(self, server_ip, server_port):
@@ -16,18 +18,19 @@ class Console():
 		self.room = None
 		self.board = None
 		self.state = "PROTO"
+		self.games = None
 
-		self.response_event = threading.Event()
-		
+		self.event = threading.Event()
+
 		print("Welcome to Tic Tac Toe Game!")
 
 		self.update()
 
-	def wait(self):
-		self.response_event.wait()
-		self.response_event.clear()
+	# def wait(self):
+	# 	self.event.wait()
+		# self.response_event.clear()
 
-	# call this whenever you want the UI to change or to do something	
+	# call this whenever you want the UI to change or to do something
 	def update(self):
 		print(self.state)
 		if self.state == "PROTO":
@@ -37,30 +40,36 @@ class Console():
 		elif self.state == "INIT_SERVER":
 			listen_thread = threading.Thread(target=listen, args=(self,))
 			listen_thread.start()
-			self.wait()
+			self.event.wait()
 			self.state = "CONNECT"
 			self.update()
 		elif self.state == "CONNECT":
 			send(self, f"HELO 1 {self.name}")
-			self.wait()
+			self.event.wait()
 		elif self.state == "MENU":
 			self.menu()
 		elif self.state == "CREATE":
 			self.create()
 		elif self.state == "GAME":
 			self.game()
-		elif self.state == "LOAD LIST":
-			send(self, "LIST")
-			self.wait()
-			self.state = "DISPLAY LIST"
-			self.update()
 		elif self.state == "DISPLAY LIST":
 			self.list()
+		elif self.state == "LIST ALL":
+			# print("check list all")
+			send(self, "LIST ALL")
+			self.event.wait()
+			# print("waiting")
+		elif self.state == "LOAD LIST":
+			send(self, "LIST CURR")
+			self.event.wait()
+			# self.state = "DISPLAY LIST"
+			# self.update()
+		else:
+			print("No State")  # test
 
 	def list(self):
-		print("Open games:")
-		print()
-		print(self.games)
+		print("Open games:", self.games)
+		self.state = " " # test for No State
 
 
 	def game(self):
@@ -109,17 +118,27 @@ class Console():
 
 	def proto(self):
 		clear_console()
-		
+
 		self.protocol = input("Which protocol version are you using now? (TCP/UDP)").upper()
 		self.state = "NAME"
 		self.update()
 
+
+#--------------------------------Outside the Class--------------------------------
+
 # sending to server thread
 def send(self, payload):
-	self.socket.sendto(f"{payload}".strip().encode("utf-8"), (self.server_ip, self.server_port))
+	# print(payload)
+	self.socket.sendto(f"{payload}".encode("utf-8"), (self.server_ip, self.server_port))
+	# print("have sent from client to server")
+		# test
 
-# server listening thread
+
+	# server listening thread
 def listen(self):
+	print("Listening...")
+	print("state", self.state)
+
 	def handle(message):
 		tokens = message.split(' ')
 		command = tokens[0]
@@ -135,11 +154,17 @@ def listen(self):
 			if not self.game_started:	# player has joined - start game
 				self.game_started = True
 		elif command == "GAMS":
-			print(';seiufhlskehfef')
 			self.games = tokens[1:]
-			
+			print(self.games)
+
+			room_game = input("Select a Room you want to join:")
+			send(self, f"JOIN {room_game}")
+
+			# test
+			# self.state = " "
+
 		self.update()
-	
+
 	# check version
 	if self.protocol == 'UDP':
 			self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -148,15 +173,17 @@ def listen(self):
 			self.socket.connect((self.server_ip, self.server_port))
 
 	self.is_connected = True
-	self.response_event.set()
+	self.event.set()
 	print("DEBUG: Listening to server...")
+	# time.sleep(3)
 
-	# while loop
+		# while loop
 	while self.is_connected:
+		print("running the while loop")
 		message = self.socket.recvfrom(BUFFER_SIZE)[0].decode("utf-8").strip()
-		print(message)
+		print("Receiver from Server: ", message)
 		handle(message)
-		self.response_event.set()
+		self.event.set()
 
 	self.socket.close()
 

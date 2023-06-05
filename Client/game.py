@@ -5,7 +5,7 @@ import os
 def clear_console():
   command = 'clear'
   os.system(command)
-                
+
 def main():
   clear_console()
   print("Welcome to Tic Tac Toe Game!")

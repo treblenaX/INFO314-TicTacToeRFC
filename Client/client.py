@@ -51,7 +51,7 @@ class Client(threading.Thread):
                     message = message.decode().strip()
                     tokens = message.split(' ')
                     command = tokens[0]
-                    
+
                     if command == 'YRMV':
                         player = tokens[2]
                         # print(player)
@@ -111,8 +111,8 @@ class Client(threading.Thread):
             self.client.sendto(f"GDBY".strip().encode(), (self.server_ip, self.server_port))
             self.is_running = False
             pass
-        
-            
+
+
 
 
     # send CREA to server
