@@ -87,6 +87,8 @@ public class TTTHandler {
         response = "JOND " + playerName + " " + gameCode;
         sessionManager.getSession(playerName).send(response.trim());
 
+        Thread.sleep(1000);
+
         // if game is full - start game - send YRMV
         if (gameMaster.isGamePlayersFull(gameCode)) {
           response = "YRMV " + gameCode + " " + gameMaster.whoseTurnInGame(gameCode);
@@ -133,7 +135,7 @@ public class TTTHandler {
         }
 
         if (gameMaster.isGameEnded(gameCode)) { // win/tie condition
-          String termResponse = (gameMaster.getGameWinner(gameCode) != null)
+          String termResponse = (!gameMaster.getGameWinner(gameCode).equals(""))
                   ? gameCode + " " + gameMaster.getGameWinner(gameCode) + " KTHXBYE"
                   : gameCode + " KTHXBYE";
 

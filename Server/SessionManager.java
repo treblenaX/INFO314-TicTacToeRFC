@@ -34,6 +34,7 @@ public class SessionManager {
     public String getUUID() { return _uuid; }
 
     public void send(String payload) throws Exception {
+      payload = payload + "\r\n";
       if (_isUDP) {
         String url = _url.split("://")[1];
         String address = url.split(":")[0];

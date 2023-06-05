@@ -52,8 +52,7 @@ public class Game {
     if (this.gameState == GameState.OPEN) {
       String p = "";
       for (String s : getPlayers()) p += s + " ";
-
-      System.out.println(this.gameCode + " " + p.trim());
+      
       return this.gameCode + " " + p.trim();
     }
 
@@ -118,13 +117,13 @@ public class Game {
       gameBoard[rowIndex][colIndex] = focusPlayer[1].charAt(0);
       this.isPlayerOneTurn = !this.isPlayerOneTurn;
 
+      boolean win = checkWin(focusPlayer[1].charAt(0));
+
       // check for tie
       if (this.moves == numCols * numRows) {
         this.gameState = GameState.FINISHED;
         return this.getGameStatus();
       }
-
-      boolean win = checkWin(focusPlayer[1].charAt(0));
 
       if (win) {  // winner!
         this.gameState = GameState.FINISHED;
@@ -161,39 +160,24 @@ public class Game {
   }
 
   private boolean checkWin(char mark) {
-    // rows
-    for (int i = 0; i < numRows; i++) {
-      boolean rowWin = true;
-      for (int j = 0; j < numCols; j++) {
-        if (gameBoard[i][j] != mark) {
-          rowWin = false;
-          break;
-        }
-      }
-      if (rowWin) return true;
+    // Rows
+    for (int i = 0; i < 3; i++) {
+      if (gameBoard[i][0] == mark && gameBoard[i][1] == mark && gameBoard[i][2] == mark)
+        return true;
     }
 
-    // columns
-    for (int i = 0; i < numCols; i++) {
-      boolean colWin = true;
-      for (int j = 0; j < numRows; j++) {
-        if (gameBoard[j][i] != mark) {
-          colWin = false;
-          break;
-        }
-      }
-      if (colWin) return true;
+    // Columns
+    for (int i = 0; i < 3; i++) {
+      if (gameBoard[0][i] == mark && gameBoard[1][i] == mark && gameBoard[2][i] == mark)
+        return true;
     }
 
-    // diagonals
-    boolean diagWin = true;
-    for (int i = 0; i < numRows; i++) {
-      if (gameBoard[i][i] != mark) {
-        diagWin = false;
-        break;
-      }
-    }
-    if (diagWin) return true;
+    // Diagonals
+    if (gameBoard[0][0] == mark && gameBoard[1][1] == mark && gameBoard[2][2] == mark)
+      return true;
+
+    if (gameBoard[0][2] == mark && gameBoard[1][1] == mark && gameBoard[2][0] == mark)
+      return true;
 
     return false;
   }
