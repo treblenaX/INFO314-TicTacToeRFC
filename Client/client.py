@@ -65,19 +65,14 @@ class Client(threading.Thread):
                     elif command == 'TERM' and len(tokens) >= 4:
                         winner = tokens[2]
                         print("Winner is " + winner + "!")
-                        self.exit_game()
-
-                        # if:
-                        #     self.clear_console()
-                        #     self.start_page()
-                        # else:   # GDBY
-                        #     self.client.sendto(f"GDBY".strip().encode(), (self.server_ip, self.server_port))
-                        #     self.is_running = False
-                        #     pass
-                    elif command == 'GDBY':
-                        print("Thanks for playing!")
-                        self.is_running = False
-                        return
+                        print("Do you want to start a second game? (y/n)")
+                        reply = input()
+                        if reply.lower() == 'y':
+                            self.clear_console()
+                            self.start_page()
+                        else:
+                            # TODO I have no idea for this
+                            pass
                     else:
                         # TODO other cases like JOND, QUIT ?
                         print("Server: ", message)
@@ -88,15 +83,16 @@ class Client(threading.Thread):
         t.start()
 
         # start the game
-        while self.is_running:
-            # while not self.messages.empty():
-            #     message, addr = self.messages.get()
-            #     print("Receive from Server: ", message.decode())
-            input_msg = input()
+        while True:
+            print("Enter your selections from 1 to 9 or quit:")
+            input_msg = input().strip()
+            print(input_msg)
             if input_msg == "quit":
                 exit()
             else:
-                self.client.sendto(input_msg.encode(), (self.server_ip, self.server_port))
+                request = "MOVE " + self.room.strip() + ' ' + input_msg
+                print(request)
+                self.client.sendto(request.encode(), (self.server_ip, self.server_port))
 
             time.sleep(3)
 
@@ -158,7 +154,7 @@ class Client(threading.Thread):
     # Start Page shows Create or List a Game
     def start_page(self):
         # Creat Game or Check List
-        print("Give me your choice!(1 or 2)\n1. Create a New Game\n2. Check current open games\n3. Check all Games")
+        print("Give me your choice!(1 or 2 or 3)\n1. Create a New Game\n2. Check current open games\n3. Check all Games")
         response = input("")
         print(response)
         # check valid input
@@ -191,11 +187,11 @@ class Client(threading.Thread):
                 for room in tokens[1:]:
                     print("Game Room: " + room)
                     rooms.append(room[:4])
-                print("rooms: ",rooms)
+                # print("rooms: ",rooms)
 
                 room_join = input("Please choose a room to join: ")
-                print("room_join: ", room_join)
-                print(len(room_join))
+                # print("room_join: ", room_join)
+                # print(len(room_join))
 
                 while room_join not in rooms or len(room_join) != 4:
                     room_join = input("Please input a valid room name: ")
@@ -218,6 +214,11 @@ class Client(threading.Thread):
             msg2 = msgFromServer[0].decode()
             print(msg2)
             # TODO check STAT
+
+        # test run a 2nd game
+        # self.run()
+
+
 
 if __name__ == "__main__":
     thread = Client('localhost', 3116, 'Sophie')
