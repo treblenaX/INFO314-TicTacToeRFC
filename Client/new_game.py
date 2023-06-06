@@ -20,7 +20,7 @@ class Game():
 
 		self.reset()
 
-		self.send_event = threading.Event()
+		# self.send_event = threading.Event()
 		self.event = threading.Event()
 
 		self.state = "PROTO"
@@ -69,7 +69,7 @@ class Game():
 			self.state = "LIST"
 			self.update()
 
-		# change UI switch case 
+		# change UI switch case
 		if self.state == "PROTO":
 			self.proto()
 		elif self.state == "NAME":
@@ -135,22 +135,22 @@ class Game():
 			self.state = "MENU"
 		elif (list_input == "create()"):
 			self.state = "LOAD CREATE"
-		else: 
+		else:
 			self.room = list_input
 			self.state = "LOAD GAME JOIN"
 		self.update()
-		
+
 	def waiting(self):
 		clear_console()
 		print("Joined room: " + self.room)
 		print()
 		print("Waiting for another player to join...")
-	
+
 	def game(self):
 		# IN_PLAY - game has started
 		# while not self.is_game_finished:
 		clear_console()
-		
+
 		print("You: " + self.name)
 		print("Room: " + self.room)
 		print()
@@ -174,7 +174,7 @@ class Game():
 				print("Waiting for the other player to move...")
 		else:
 			print("Waiting for player...")
-			
+
 
 	def menu(self):
 		clear_console()
@@ -224,7 +224,7 @@ class Game():
 
 		is_protocol_select = False
 		self.protocol = input(">").upper()
-		
+
 		while not is_protocol_select:
 			if self.protocol == "TCP":
 				is_protocol_select = True
@@ -307,7 +307,7 @@ def handle(self, message):
 				"player_1": player_1,
 			}
 
-			if (len(tokens) >= 5):	# game in play or finished
+			if (len(tokens) >= 3):	# game in play or finished
 				self.game_stat_dict[room]["player_2"] = tokens[3]
 				self.game_stat_dict[room]["player_turn"] = tokens[4]
 				self.game_stat_dict[room]["board"] = tokens[5]
@@ -320,7 +320,7 @@ def handle(self, message):
 		else:
 			# handle game interaction and update with BORD
 			self.whose_move = tokens[4]
-			if (len(tokens) >= 5): 
+			if (len(tokens) >= 5):
 				raw_board = tokens[5]
 				self.board = raw_board.split('|')[1:]
 			self.update()
