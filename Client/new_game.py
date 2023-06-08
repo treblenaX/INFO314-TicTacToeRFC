@@ -307,7 +307,7 @@ def handle(self, message):
 				"player_1": player_1,
 			}
 
-			if (len(tokens) >= 3):	# game in play or finished
+			if (len(tokens) >= 5):	# game in play or finished
 				self.game_stat_dict[room]["player_2"] = tokens[3]
 				self.game_stat_dict[room]["player_turn"] = tokens[4]
 				self.game_stat_dict[room]["board"] = tokens[5]
